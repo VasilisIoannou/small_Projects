@@ -43,6 +43,7 @@ public:
     player(int setId,int setBalance){
         id = setId;
         balance = setBalance;
+        bet = 0;
     }
     void drawCard(vector<Card>& deck){
         hand.push_back(deck.back());
@@ -62,6 +63,7 @@ public:
         balance = newBalance;
     }
     void setBet(int newBet){
+
         bet = newBet;
         balance -=bet;
     }
@@ -132,7 +134,7 @@ void showDeck(vector<Card> deck){
     }
 }
 
-void PrintUI(player playerList[],int numberOfPlayers){
+void PrintUI(vector<player> playerList,int numberOfPlayers){
     system("cls");
     cout<<"Dealer: ";
     playerList[0].showHand();
@@ -151,11 +153,11 @@ void PrintUI(player playerList[],int numberOfPlayers){
     cout<<endl;
 }
 
-void ChooseBets(player playerList[],int numberOfplayers){
+void ChooseBets(vector<player>& playerList,int numberOfplayers){
     int bet;
-    int dealersBalance = playerList[0].getBalance();
+    int dealersBalance = playerList.at(0).getBalance();
     for(int i=1;i<numberOfplayers;i++){
-        int currentPlayerBalance = playerList[i].getBalance();
+        int currentPlayerBalance = playerList.at(i).getBalance();
         cout<<"Player's "<<i<<" choice..."<<endl;
         cout<<"How much do you want to bet? Current balance is "<<currentPlayerBalance<<" $"<<endl;
         cin>>bet;
@@ -167,16 +169,16 @@ void ChooseBets(player playerList[],int numberOfplayers){
         }
         if(bet > currentPlayerBalance) cout<<"Good luck soldier"<<endl;
         if(bet == currentPlayerBalance && currentPlayerBalance>=100) cout<<"ALL IN? You must feel really lucky!"<<endl;
-        playerList[i].setBet(bet);
+        playerList.at(i).setBet(bet);
 
         dealersBalance += bet;
     }
-    playerList[0].setBalance(dealersBalance);
+    playerList.at(0).setBalance(dealersBalance);
     getch();
 }
 
 
-void initaliseGame(player playerList[],int numberOfplayers, vector<Card>& deck){
+void initaliseGame(vector<player>& playerList,int numberOfplayers, vector<Card>& deck){
     shuffleDeck(deck);
     for(int i=0;i<numberOfplayers;i++){
             playerList[i].clearHand();
@@ -220,7 +222,7 @@ bool playerDecisionDraw(player p){
     return false;
 }
 
-void nextPlayer(player& p,vector<Card>& deck,player playerList[],int numberOfPlayers){
+void nextPlayer(player& p,vector<Card>& deck,vector<player> playerList,int numberOfPlayers){
     bool play = playerDecisionDraw(p);
     while(play){
         p.drawCard(deck);
@@ -229,7 +231,7 @@ void nextPlayer(player& p,vector<Card>& deck,player playerList[],int numberOfPla
     }
 }
 
-void endGame(player playerList[],int numberOfPlayers){
+void endGame(vector<player>& playerList,int numberOfPlayers){
     int sumPlayersHands[numberOfPlayers];
     for(int i=0;i<numberOfPlayers;i++){
         sumPlayersHands[i] = playerList[i].sumHand();
@@ -268,7 +270,7 @@ void endGame(player playerList[],int numberOfPlayers){
     }
 }
 
-void playGame(player playerList[],int numberOfPlayers,vector<Card>& deck){
+void playGame(vector<player>& playerList,int numberOfPlayers,vector<Card>& deck){
 
     initaliseGame(playerList,numberOfPlayers,deck);
 
@@ -284,7 +286,7 @@ void playGame(player playerList[],int numberOfPlayers,vector<Card>& deck){
 
     endGame(playerList,numberOfPlayers);
 }
-bool noMoreMoney(player playerList[],int numberOfPlayers){
+bool noMoreMoney(vector<player> playerList,int numberOfPlayers){
     int numberofBrokePlayers = 0;
     for(int i=1;i<numberOfPlayers;i++){
         if(playerList[i].getBalance()<= 0) numberofBrokePlayers++;
@@ -292,17 +294,31 @@ bool noMoreMoney(player playerList[],int numberOfPlayers){
     if(numberofBrokePlayers >= numberOfPlayers-2) return true;
     return false;
 }
+void setUpPlayerList(vector<player>& playerList,int numberOfPlayers){
+    cout<<endl<<"Input player's data"<<endl;
+    player Dealer(0,0);
+    playerList.push_back(Dealer);
+    for(int i=1;i<numberOfPlayers;i++){
+        int newBalance;
+        cout<<"Enter the Balance of player "<<i<<" : ";
+        cin>>newBalance;
+        player newPlayer(i,newBalance);
+        playerList.push_back(newPlayer);
+    }
+}
 int main(){
     vector<Card> deck;
 
     initialiseDeck();
 
-    const int numberOfPlayers = 3;
+    int numberOfPlayers;
 
-    player Dealer(0,0);
-    player p1(1,100),p2(2,100);
+    cout<<"How many players will be in the game? "<<endl<<"Input number of players: ";
+    cin>>numberOfPlayers;
+    numberOfPlayers++;//+1 is the dealer
 
-    player playerList[numberOfPlayers] = {Dealer,p1,p2};
+    vector<player> playerList;
+    setUpPlayerList(playerList,numberOfPlayers);
 
     bool playAgain = true;
     while(playAgain){

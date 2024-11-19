@@ -1,0 +1,12 @@
+.messageBox{
+  border: 5px solid black;
+  margin: 5px;
+  
+}
+.message{
+    display: flex;
+}
+.user{
+    position:absolute;
+    right:30px;
+}

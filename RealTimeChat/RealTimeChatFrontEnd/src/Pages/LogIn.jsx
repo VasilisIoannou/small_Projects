@@ -17,35 +17,66 @@ const LogIn = () => {
 
   function requestCreate(){
     fetch('http://localhost:8080/account/create/'+username+'@'+password,{
-      method: 'PUT',
+      method: 'POST',
       headers: {"Content-Type":"application/json"}
     }).then(responce => responce.json)
-      .then()
+    .catch(err => {
+      console.error("Failed to create card:", err);
+    })
+  }
+
+  const logInUser = async() =>{
+    const res = await fetch('http://localhost:8080/account/get/'+username+'@'+password);
+    const data = await res.json();
+
+    console.log(data)
+
+    if(data.length>0){
+      moveToMainPage()
+    } else {
+      console.log("Account Doesnt Exists")
+    }
   }
 
   function createUser(){
-    
-
-
-
+    requestCreate()
     moveToMainPage()
   }
 
   return (
     <>
-    <div>Enter Username</div>
-    <div>
-        <input 
-            placeholder='username...' 
-            value = {username}
-            onChange={(e) => setUsername(e.target.value)}
-        />
-        <input 
-            placeholder='password...' 
-            value = {password}
-            onChange={(e) => setPassword(e.target.value)}
-        />
-        <button onClick={createUser}> Enter</button>
+    <div id="signUp">
+      <div>Sign Up</div>
+      <div>
+          <input 
+              placeholder='username...' 
+              value = {username}
+              onChange={(e) => setUsername(e.target.value)}
+          />
+          <input 
+              placeholder='password...' 
+              value = {password}
+              onChange={(e) => setPassword(e.target.value)}
+          />
+          <button onClick={createUser}> Enter</button>
+      </div>
+    </div>
+
+    <div id="logIn">
+      <div>Log In/</div>
+      <div>
+          <input 
+              placeholder='username...' 
+              value = {username}
+              onChange={(e) => setUsername(e.target.value)}
+          />
+          <input 
+              placeholder='password...' 
+              value = {password}
+              onChange={(e) => setPassword(e.target.value)}
+          />
+          <button onClick={() => logInUser()}> Enter</button>
+      </div>
     </div>
     </>
   )

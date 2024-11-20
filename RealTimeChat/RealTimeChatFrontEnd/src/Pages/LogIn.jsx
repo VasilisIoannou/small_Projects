@@ -80,6 +80,7 @@ const LogIn = () => {
           <button onClick={() => logInUser()}> Enter</button>
       </div>
     </div>
+    </>
   )
 }
 

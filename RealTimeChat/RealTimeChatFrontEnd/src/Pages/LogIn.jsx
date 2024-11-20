@@ -1,5 +1,7 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom';
+import style from '../Styles/LogIn.module.css'
+
 
 const LogIn = () => {
 
@@ -19,17 +21,17 @@ const LogIn = () => {
   }
 
   return (
-    <>
-    <div>Enter Username</div>
-    <div>
-        <input 
-            placeholder='username...' 
+    <div className = {style.loginPage}>
+    <div className = {style.enterUsername}>Username</div>
+    <div className = {style.inputContainer}>
+        <input className = {style.usernameInput}
+            placeholder='Enter a username...' 
             value = {username}
             onChange={(e) => setUsername(e.target.value)}
         />
-        <button onClick={createUser}> Enter</button>
+        <button onClick={createUser} className = {style.usernameInputButton}> Enter</button>
     </div>
-    </>
+    </div>
   )
 }
 

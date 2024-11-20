@@ -25,7 +25,7 @@ public class AccountController {
         return accountRepository.findByUsernameAndPassword(username,password);
     }
 
-    @PutMapping("create/{username_password}")
+    @PostMapping("create/{username_password}")
     public void createAccount(@PathVariable String username_password){
         String username = username_password.split("@")[0];
         String password = username_password.split("@")[1];

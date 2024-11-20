@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 
 const LogIn = () => {
 
-  const [username,setUsername] = useState("");   
+  const [username,setUsername] = useState(""); 
+  const [password,setPassword] = useState("");    
   const navigate = useNavigate();
  
   function moveToMainPage(){
@@ -13,8 +14,20 @@ const LogIn = () => {
         alert("Please enter a username.");
     }
   }
+
+  function requestCreate(){
+    fetch('http://localhost:8080/account/create/'+username+'@'+password,{
+      method: 'PUT',
+      headers: {"Content-Type":"application/json"}
+    }).then(responce => responce.json)
+      .then()
+  }
+
   function createUser(){
-    //connect with back end
+    
+
+
+
     moveToMainPage()
   }
 
@@ -26,6 +39,11 @@ const LogIn = () => {
             placeholder='username...' 
             value = {username}
             onChange={(e) => setUsername(e.target.value)}
+        />
+        <input 
+            placeholder='password...' 
+            value = {password}
+            onChange={(e) => setPassword(e.target.value)}
         />
         <button onClick={createUser}> Enter</button>
     </div>

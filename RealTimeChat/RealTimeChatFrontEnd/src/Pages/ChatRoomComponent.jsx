@@ -71,8 +71,7 @@ const ChatRoomComponent = ({usernameLogIn}) => {
             {messages.map((msg,index)=>{
                 if(usernameLogIn === msg.sender){ //Your own messages
                   return(
-                    <div key={index} className={style.message}>
-                      <div>Your message</div>
+                    <div key={index} className={style.message}>d
                       <div>{msg.content}</div>
                       <div className={style.user}>{msg.sender}</div>
                     </div>

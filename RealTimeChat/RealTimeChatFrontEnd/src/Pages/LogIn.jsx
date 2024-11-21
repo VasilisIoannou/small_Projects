@@ -68,7 +68,7 @@ const LogIn = () => {
     </div>
 
     <div id="logIn">
-      <div>Log In/</div>
+      <div>Log In</div>
       <div>
           <input 
               placeholder='username...' 

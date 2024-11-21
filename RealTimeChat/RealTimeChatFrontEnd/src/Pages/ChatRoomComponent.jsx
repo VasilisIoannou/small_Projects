@@ -38,12 +38,22 @@ const ChatRoomComponent = ({usernameLogIn}) => {
         {usernameLogIn !== '' && usernameLogIn  ? usernameLogIn : "Please Log In"}
         <div className={style.messageBox}>
             {messages.map((msg,index)=>{
-                return (
-                <div key={index} className={style.message}>
-                    <div>{msg.content}</div>
-                    <div className={style.user}>{msg.sender}</div>
-                </div>
-                )
+                if(usernameLogIn === msg.sender){ //Your own messages
+                  return(
+                    <div key={index} className={style.message}>
+                      <div>Your message</div>
+                      <div>{msg.content}</div>
+                      <div className={style.user}>{msg.sender}</div>
+                    </div>
+                  )
+                } else { //other peoples messages
+                  return(
+                    <div key={index} className={style.message}>
+                      <div>{msg.content}</div>
+                      <div className={style.user}>{msg.sender}</div>
+                    </div>
+                  )
+                }
             })}
         </div>
     </div>

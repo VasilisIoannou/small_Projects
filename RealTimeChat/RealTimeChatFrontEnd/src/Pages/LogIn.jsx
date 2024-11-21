@@ -59,6 +59,7 @@ const LogIn = () => {
           />
           <input 
               placeholder='password...' 
+              type = "password"
               value = {password}
               onChange={(e) => setPassword(e.target.value)}
           />
@@ -76,6 +77,7 @@ const LogIn = () => {
           />
           <input 
               placeholder='password...' 
+              type = "password"
               value = {loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
           />

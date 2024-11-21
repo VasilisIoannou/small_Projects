@@ -5,6 +5,10 @@ const LogIn = () => {
 
   const [username,setUsername] = useState(""); 
   const [password,setPassword] = useState("");    
+
+  const [loginUsername,setLoginUsername] = useState(""); 
+  const [loginPassword,setLoginPassword] = useState("");  
+
   const navigate = useNavigate();
  
   function moveToMainPage(){
@@ -26,7 +30,7 @@ const LogIn = () => {
   }
 
   const logInUser = async() =>{
-    const res = await fetch('http://localhost:8080/account/get/'+username+'@'+password);
+    const res = await fetch('http://localhost:8080/account/get/'+loginUsername+'@'+loginPassword);
     const data = await res.json();
 
     console.log(data)
@@ -67,13 +71,13 @@ const LogIn = () => {
       <div>
           <input 
               placeholder='username...' 
-              value = {username}
-              onChange={(e) => setUsername(e.target.value)}
+              value = {loginUsername}
+              onChange={(e) => setLoginUsername(e.target.value)}
           />
           <input 
               placeholder='password...' 
-              value = {password}
-              onChange={(e) => setPassword(e.target.value)}
+              value = {loginPassword}
+              onChange={(e) => setLoginPassword(e.target.value)}
           />
           <button onClick={() => logInUser()}> Enter</button>
       </div>

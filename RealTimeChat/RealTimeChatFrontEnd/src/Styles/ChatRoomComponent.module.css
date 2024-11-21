@@ -1,12 +1,81 @@
-.messageBox{
-  border: 5px solid black;
+/* .messageBox{
+  border: 2px solid black;
   margin: 5px;
-  
-}
-.message{
+} 
+/* .message{
     display: flex;
+} */
+.MessageBox {
+  width: 100%; /* Full width of the container */
+  display: flex;
+  flex-direction: column; /* Stack messages vertically */
 }
-.user{
-    position:absolute;
-    right:30px;
+
+.messageLine {
+  width:600px;
+  display: flex; /* Inline layout for sender and message (enikserw ti kammei touto)*/
+  margin-left: 10px; /* 600px gia mesi */
+  margin-bottom: 8px;
+  align-items: center;
+}
+
+.user { 
+  /* An mpei orio sto poso megalo mporei na eni to username, mporei na fiei to border je na ksekinoun oulla ta minimata stin idia efthia */
+  font-family: 'Times New Roman', Times, serif;
+  display: inline-block;
+  background-color: black;
+  color:white;
+  border:2px solid black;
+  padding:5px;
+  width:auto;
+  border-radius:5px;
+  text-align: center;
+  font-weight: bold;
+  margin-right: 5px;
+}
+
+.message {
+  background-color: #2763FF;
+  color:white;
+  padding:7px;
+  text-align: center;
+  border:2px solid white;
+  border-radius:10px;
+  word-wrap: break-word;
+  margin:0;
+}
+
+
+.messageInput{
+  margin-right:5px;
+  height:30px;
+  width:220px;
+  border-radius:5px;
+  border: 2px solid black;  
+}
+
+.messageInput::placeholder{
+  font-size:15px;
+  padding-left:5px;
+  font-style:italic;
+}
+
+.MessageButton{
+  height:35px;
+  width:47px;
+  text-align: center;
+  border-radius:5px;
+  background-color:grey;
+  color:white;
+  cursor:pointer;
+}
+
+.MessageButton:hover{
+  background-color:black;
+  transition-duration: 0.1s;
+}
+
+.theInput{
+  text-align: center;
+  margin:10px;
 }

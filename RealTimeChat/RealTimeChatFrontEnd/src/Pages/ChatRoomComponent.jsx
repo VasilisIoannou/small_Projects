@@ -10,9 +10,25 @@ const ChatRoomComponent = ({usernameLogIn}) => {
   const [newMessage,setNewMessage] = useState("");
 
   const stompClient = useStompClient(); 
+  const [userColors, setUserColors] = useState({}); 
+
+  const colors = [
+    "#2763FF", "#A702FF", "#fdffb6", "#caffbf", "#9bf6ff", 
+    "#a0c4ff", "#bdb2ff", "#ffc6ff", "#fffffc",
+  ]; // Define an array of colors to cycle through
+
 
   useSubscription("/topic/public",(message) => {
     const parseMessage = JSON.parse(message.body);
+
+    setUserColors((prevColors) => {
+      if (!prevColors[parseMessage.sender]) {
+        const nextColor = colors[Object.keys(prevColors).length % colors.length];
+        return { ...prevColors, [parseMessage.sender]: nextColor };
+      }
+      return prevColors;
+    });
+
     setMessages((prev) => [...prev,parseMessage]);
   })
 
@@ -34,7 +50,22 @@ const ChatRoomComponent = ({usernameLogIn}) => {
 
   return (
     <>
-    <div id="MessageBox">
+    <div className = {style.theInput}>
+        <input className = {style.messageInput}
+            placeholder ="Enter new message"
+            onKeyDown = {(e) => {
+              if(e.key === 'Enter' ){
+                sendMessage()
+              }}
+              
+            }
+            value = {newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+        />
+        {/* <button className = {style.MessageButton} onClick={sendMessage}>Send</button><br/><br/> */}
+    </div>
+
+    <div className ={style.MessageBox}>
         {usernameLogIn !== '' && usernameLogIn  ? usernameLogIn : "Please Log In"}
         <div className={style.messageBox}>
             {messages.map((msg,index)=>{
@@ -57,14 +88,7 @@ const ChatRoomComponent = ({usernameLogIn}) => {
             })}
         </div>
     </div>
-    <div>
-        <input 
-            placeholder="enter..."
-            value = {newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-        />
-        <button onClick={sendMessage}>Send Message</button>
-    </div>
+
     </>
   )
 }

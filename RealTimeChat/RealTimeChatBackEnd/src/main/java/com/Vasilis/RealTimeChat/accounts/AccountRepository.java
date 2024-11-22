@@ -11,11 +11,11 @@ import java.util.List;
 @Repository
 public class AccountRepository {
     public final JdbcTemplate jdbcTemplate;
-    private final ObjectMapper objectMapper;
+    //private final ObjectMapper objectMapper;
 
     public AccountRepository(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        this.objectMapper = objectMapper;
+        //this.objectMapper = objectMapper;
     }
 
     public static AccountRecord mapRow(ResultSet rs,Integer rowNumber) throws SQLException {

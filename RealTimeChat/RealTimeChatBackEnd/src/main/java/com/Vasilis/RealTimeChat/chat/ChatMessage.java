@@ -9,6 +9,8 @@ import java.awt.*;
 @NoArgsConstructor
 @Builder
 public class ChatMessage {
+    private Integer id;
+    private Integer chatroomID;
     private String content;
     private String sender;
     private MessageType type;

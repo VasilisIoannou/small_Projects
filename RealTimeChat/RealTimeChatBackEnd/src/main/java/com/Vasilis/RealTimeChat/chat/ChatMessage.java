@@ -11,7 +11,7 @@ import java.awt.*;
 public class ChatMessage {
     private Integer id;
     private Integer chatroomID;
+    private Integer userID;
     private String content;
     private String sender;
-    private MessageType type;
 }

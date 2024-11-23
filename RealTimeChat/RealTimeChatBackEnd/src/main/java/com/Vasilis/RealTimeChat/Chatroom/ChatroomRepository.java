@@ -1,8 +1,6 @@
 package com.Vasilis.RealTimeChat.Chatroom;
 
-import com.Vasilis.RealTimeChat.accounts.AccountRepository;
 import com.Vasilis.RealTimeChat.chat.ChatMessage;
-import com.Vasilis.RealTimeChat.chat.MessageType;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -29,9 +27,9 @@ public class ChatroomRepository {
         return ChatMessage.builder()
                 .id(rs.getInt("id"))
                 .chatroomID(rs.getInt("chatroom_id"))
+                .userID(rs.getInt("sender_id"))
                 .content(rs.getString("content"))
                 .sender(rs.getString("sender"))
-                .type(MessageType.valueOf(rs.getString("type")))
                 .build();
     }
 
@@ -52,8 +50,8 @@ public class ChatroomRepository {
         jdbcTemplate.update(sql);
     }
 
-    public void createMessage(Integer chatroomId,String content,String sender){
-        String sql = "INSERT INTO messages (chatroom_id,content,sender) VALUES(?,?,?)";
-        jdbcTemplate.update(sql,chatroomId,content,sender);
+    public void createMessage(Integer chatroomId,String content,String sender,Integer sender_id){
+        String sql = "INSERT INTO messages (chatroom_id,content,sender_id,sender) VALUES(?,?,?,?)";
+        jdbcTemplate.update(sql,chatroomId,content,sender_id,sender);
     }
 }

@@ -13,9 +13,9 @@ const LogIn = () => {
 
   const navigate = useNavigate();
  
-  function moveToMainPage(){
-    if (username.trim()) {
-        navigate('/chatroomHook', { state: { username : username } }); 
+  function moveToMainPage(usernamePass){
+    if (usernamePass.trim()) {
+        navigate('/chatroomHook', { state: { username : usernamePass } }); 
     } else {
         alert("Please enter a username.");
     }
@@ -35,18 +35,17 @@ const LogIn = () => {
     const res = await fetch('http://localhost:8080/account/get/'+loginUsername+'@'+loginPassword);
     const data = await res.json();
 
-    console.log(data)
-
-    if(data.length>0){
-      moveToMainPage()
+    if(data.length > 0){
+      moveToMainPage(loginUsername)
     } else {
       console.log("Account Doesnt Exists")
     }
   }
 
   function createUser(){
+    //Dont allow duplicate accounts
     requestCreate()
-    moveToMainPage()
+    moveToMainPage(username)
   }
 
   return (

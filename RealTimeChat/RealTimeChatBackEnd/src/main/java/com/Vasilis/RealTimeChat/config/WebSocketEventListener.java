@@ -1,7 +1,6 @@
 package com.Vasilis.RealTimeChat.config;
 
 import com.Vasilis.RealTimeChat.chat.ChatMessage;
-import com.Vasilis.RealTimeChat.chat.MessageType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -24,7 +23,6 @@ public class WebSocketEventListener {
         if(username != null) {
             log.info("User Disconnected: {}",username);
             var chatMessage = ChatMessage.builder()
-                    .type(MessageType.LEAVE)
                     .sender(username)
                     .build();
             messagingTemplate.convertAndSend("/topic/chat", chatMessage);

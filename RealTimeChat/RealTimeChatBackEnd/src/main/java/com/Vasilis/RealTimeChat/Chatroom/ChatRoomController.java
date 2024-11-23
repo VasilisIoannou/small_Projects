@@ -2,7 +2,6 @@ package com.Vasilis.RealTimeChat.Chatroom;
 
 
 import com.Vasilis.RealTimeChat.chat.ChatMessage;
-import com.Vasilis.RealTimeChat.chat.MessageType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,12 +30,13 @@ public class ChatRoomController {
         chatroomRepository.createChatroom();
     }
 
-    @PutMapping("messages/create/{sender_message_chatroom}")
-    public void createMessage(@PathVariable String sender_message_chatroom){
-        String sender = sender_message_chatroom.split("@")[0];
-        String message = sender_message_chatroom.split("@")[1];
-        Integer chatroomId = Integer.parseInt(sender_message_chatroom.split("@")[2]);
-        chatroomRepository.createMessage(chatroomId,message, sender);
+    @PutMapping("messages/create/{sender_message_chatroom_senderId}")
+    public void createMessage(@PathVariable String sender_message_chatroom_senderId){
+        String sender = sender_message_chatroom_senderId.split("@")[0];
+        String message = sender_message_chatroom_senderId.split("@")[1];
+        Integer chatroomId = Integer.parseInt(sender_message_chatroom_senderId.split("@")[2]);
+        Integer senderId = Integer.parseInt(sender_message_chatroom_senderId.split("@")[3]);
+        chatroomRepository.createMessage(chatroomId,message, sender, senderId);
     }
 
 }

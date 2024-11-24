@@ -17,7 +17,7 @@ const LogIn = () => {
     if (usernamePass.trim()) {
         navigate('/chatroomHook', { state: { username : usernamePass } }); 
     } else {
-        alert("Please enter a username.");
+        alert("Please enter a username!");
     }
   }
 
@@ -38,7 +38,7 @@ const LogIn = () => {
     if(data.length > 0){
       moveToMainPage(loginUsername)
     } else {
-      console.log("Account Doesnt Exists")
+      console.log("Account Doesn't Exist")
     }
   }
 
@@ -49,43 +49,43 @@ const LogIn = () => {
   }
 
   return (
-    <>
-    <div id="signUp">
+    <div className ={style.loginPage}>
+    <div id="signUp" className = {style.signUp}>
       <div>Sign Up</div>
-      <div>
-          <input 
+      <div className = {style.things}>
+          <input className ={style.usernameInput}
               placeholder='username...' 
               value = {username}
               onChange={(e) => setUsername(e.target.value)}
           />
-          <input 
+          <input className ={style.usernameInput}
               placeholder='password...' 
               type = "password"
               value = {password}
               onChange={(e) => setPassword(e.target.value)}
           />
-          <button onClick={createUser}> Enter</button>
+          <button className = {style.usernameInputButton} onClick={createUser}> Enter</button>
       </div>
     </div>
 
-    <div id="logIn">
+    <div id="logIn" className = {style.logIn}>
       <div>Log In</div>
-      <div>
-          <input 
+      <div className = {style.things}>
+          <input className ={style.usernameInput}
               placeholder='username...' 
               value = {loginUsername}
               onChange={(e) => setLoginUsername(e.target.value)}
           />
-          <input 
+          <input className ={style.usernameInput}
               placeholder='password...' 
               type = "password"
               value = {loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}
           />
-          <button onClick={() => logInUser()}> Enter</button>
+          <button className = {style.usernameInputButton} onClick={() => logInUser()}> Enter</button>
+      </div>
       </div>
     </div>
-    </>
   )
 }
 

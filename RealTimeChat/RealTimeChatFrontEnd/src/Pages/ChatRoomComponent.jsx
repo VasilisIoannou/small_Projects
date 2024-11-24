@@ -20,15 +20,6 @@ const ChatRoomComponent = ({usernameLogIn}) => {
 
   useSubscription("/topic/public",(message) => {
     const parseMessage = JSON.parse(message.body);
-
-    setUserColors((prevColors) => {
-      if (!prevColors[parseMessage.sender]) {
-        const nextColor = colors[Object.keys(prevColors).length % colors.length];
-        return { ...prevColors, [parseMessage.sender]: nextColor };
-      }
-      return prevColors;
-    });
-
     setMessages((prev) => [...prev,parseMessage]);
   })
 
@@ -65,28 +56,38 @@ const ChatRoomComponent = ({usernameLogIn}) => {
         {/* <button className = {style.MessageButton} onClick={sendMessage}>Send</button><br/><br/> */}
     </div>
 
-    <div className ={style.MessageBox}>
-        {usernameLogIn !== '' && usernameLogIn  ? usernameLogIn : "Please Log In"}
-        <div className={style.messageBox}>
-            {messages.map((msg,index)=>{
-                if(usernameLogIn === msg.sender){ //Your own messages
-                  return(
-                    <div key={index} className={style.message}>d
-                      <div>{msg.content}</div>
-                      <div className={style.user}>{msg.sender}</div>
-                    </div>
-                  )
-                } else { //other peoples messages
-                  return(
-                    <div key={index} className={style.message}>
-                      <div>{msg.content}</div>
-                      <div className={style.user}>{msg.sender}</div>
-                    </div>
-                  )
-                }
-            })}
-        </div>
-    </div>
+
+    {/* {usernameLogIn !== '' && usernameLogIn  ? usernameLogIn : "Please Log In"} */}
+
+
+
+  <div className={style.messageBox}>
+    {messages.length > 0 ? (
+      messages.map((msg, index) => {
+        if (usernameLogIn === msg.sender) {
+          // Your own messages
+          return (
+            <div key={index} className={style.messageLine}>
+              <span className={style.message1}>{msg.content}</span>
+              <br />
+            </div>
+          );
+        } else {
+          // Other people's messages
+          return (
+            <div key={index} className={style.messageLine}>
+              <span className={style.message2}>{msg.content}</span>
+              <br />
+            </div>
+          );
+        }
+      })
+    ) : (
+      <div className={style.noMessages}>No messages yet!</div>
+    )}
+  </div>
+
+ 
 
     </>
   )

@@ -1,26 +1,4 @@
-/* .messageBox{
-  border: 2px solid black;
-  margin: 5px;
-} 
-/* .message{
-    display: flex;
-} */
-.MessageBox {
-  width: 100%; /* Full width of the container */
-  display: flex;
-  flex-direction: column; /* Stack messages vertically */
-}
-
-.messageLine {
-  width:600px;
-  display: flex; /* Inline layout for sender and message (enikserw ti kammei touto)*/
-  margin-left: 10px; /* 600px gia mesi */
-  margin-bottom: 8px;
-  align-items: center;
-}
-
-.user { 
-  /* An mpei orio sto poso megalo mporei na eni to username, mporei na fiei to border je na ksekinoun oulla ta minimata stin idia efthia */
+/* .user { 
   font-family: 'Times New Roman', Times, serif;
   display: inline-block;
   background-color: black;
@@ -32,18 +10,7 @@
   text-align: center;
   font-weight: bold;
   margin-right: 5px;
-}
-
-.message {
-  background-color: #2763FF;
-  color:white;
-  padding:7px;
-  text-align: center;
-  border:2px solid white;
-  border-radius:10px;
-  word-wrap: break-word;
-  margin:0;
-}
+} */
 
 
 .messageInput{
@@ -60,7 +27,7 @@
   font-style:italic;
 }
 
-.MessageButton{
+/* .MessageButton{
   height:35px;
   width:47px;
   text-align: center;
@@ -68,14 +35,55 @@
   background-color:grey;
   color:white;
   cursor:pointer;
-}
+} */
 
-.MessageButton:hover{
+/* .MessageButton:hover{
   background-color:black;
   transition-duration: 0.1s;
-}
+} */
 
 .theInput{
   text-align: center;
   margin:10px;
 }
+
+
+
+.messageBox {
+  display: flex; /* Enables flex layout */
+  flex-direction: column; /* Stack messages vertically */
+  position: relative; /* Relative positioning for boundaries */
+  background-color: #f0f0f0; /* Container background */
+  padding: 10px;
+  border: 2px solid black;
+  width: 60%; /* Set the width of the container */
+  margin: 0 auto; /* Center the container */
+}
+
+.messageLine {
+  display: flex; /* Use flexbox to align messages */
+  justify-content: flex-end; /* Align messages to the right */
+}
+
+.message1, .message2 {
+  max-width: 70%; /* Limit the maximum width of messages */
+  padding: 7px;
+  border-radius: 10px;
+  word-wrap: break-word; /* Break words if they exceed the max-width */
+  margin-bottom:5px;
+}
+
+.message1 {
+  background-color: #2763FF;;
+  color: white;
+  text-align: left;
+  margin-left: auto; /* Push the message to the right */
+}
+
+.message2 {
+  background-color: #A702FF;
+  color: white;
+  text-align: left;
+  margin-right: auto; /* Push the message to the left */
+}
+

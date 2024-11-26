@@ -25,9 +25,17 @@ public class ChatRoomController {
         return chatroomRepository.getAllMessages();
     }
 
-    @PutMapping("room/create")
-    public void createChatroom(){
-        chatroomRepository.createChatroom();
+    @GetMapping("room/get/code/{code}")
+    public List<ChatroomRecord> getChatroomByCode(@PathVariable String code){
+        return chatroomRepository.getChatroomByCode(code);
+    }
+
+    @PutMapping("room/create/{name_code_creatorId}")
+    public Integer createChatroom(@PathVariable String name_code_creatorId){
+        String name = name_code_creatorId.split("@")[0];
+        String code = name_code_creatorId.split("@")[1];
+        Integer creatorId = Integer.parseInt(name_code_creatorId.split("@")[2]);
+        return  chatroomRepository.createChatroom(name,code,creatorId);
     }
 
     @PutMapping("messages/create/{sender_message_chatroom_senderId}")
@@ -37,6 +45,21 @@ public class ChatRoomController {
         Integer chatroomId = Integer.parseInt(sender_message_chatroom_senderId.split("@")[2]);
         Integer senderId = Integer.parseInt(sender_message_chatroom_senderId.split("@")[3]);
         chatroomRepository.createMessage(chatroomId,message, sender, senderId);
+    }
+
+    @PutMapping("/account_chatroom/createConnection/{accountId_chatroomId}")
+    public void addAccountToChatroom(@PathVariable String accountId_chatroomId){
+        Integer chatroomId = Integer.parseInt(accountId_chatroomId.split("@")[0]);
+        Integer senderId = Integer.parseInt(accountId_chatroomId.split("@")[1]);
+        System.out.println(chatroomId+" "+senderId);
+
+        chatroomRepository.addAccountToChatroom(chatroomId,senderId);
+    }
+
+    @GetMapping("/account_chatroom/getChatroomsByAccount/{accountIdStr}")
+    public List<ChatroomRecord> getChatroomsByAccount(@PathVariable String accountIdStr){
+        Integer accountId = Integer.parseInt(accountIdStr);
+        return chatroomRepository.getChatroomsByAccount(accountId);
     }
 
 }

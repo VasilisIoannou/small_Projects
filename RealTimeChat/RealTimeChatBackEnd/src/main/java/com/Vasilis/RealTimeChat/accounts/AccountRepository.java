@@ -11,11 +11,9 @@ import java.util.List;
 @Repository
 public class AccountRepository {
     public final JdbcTemplate jdbcTemplate;
-    //private final ObjectMapper objectMapper;
 
     public AccountRepository(JdbcTemplate jdbcTemplate, ObjectMapper objectMapper) {
         this.jdbcTemplate = jdbcTemplate;
-        //this.objectMapper = objectMapper;
     }
 
     public static AccountRecord mapRow(ResultSet rs,Integer rowNumber) throws SQLException {
@@ -41,5 +39,6 @@ public class AccountRepository {
     public void createAccount(String username, String password) {
         String sql = "INSERT INTO accounts (username, password) VALUES (?, ?)";
         jdbcTemplate.update(sql, username, password);
+        //return Id created
     }
 }

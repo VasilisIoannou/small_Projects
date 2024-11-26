@@ -2,7 +2,6 @@ package com.Vasilis.RealTimeChat.chat;
 
 import lombok.*;
 
-import java.awt.*;
 @Getter
 @Setter
 @AllArgsConstructor

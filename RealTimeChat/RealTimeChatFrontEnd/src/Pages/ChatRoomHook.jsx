@@ -8,8 +8,10 @@ import ChatRoomComponent from './ChatRoomComponent';
 const ChatRoomHook = () => {
 
   const location = useLocation();
-  const {username} = location.state || {}
-
+  const {username = "not set"} = location.state || {}
+  const {chatroomTitle = "not set"} = location.state || {}
+  const {userId = "not set"} = location.state || {}
+  const {chatroomId= "not set"} = location.state || {}
 
   return (
     <>
@@ -19,7 +21,7 @@ const ChatRoomHook = () => {
         onDisconnect={() => console.log('Disconnected from STOMP')}
     >
 
-        <ChatRoomComponent usernameLogIn = {username} />
+        <ChatRoomComponent usernameLogIn = {username} chatroomTitle={chatroomTitle} userId={userId} chatroomId={chatroomId} />
 
     </StompSessionProvider>
     </>

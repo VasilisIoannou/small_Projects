@@ -1,12 +1,19 @@
 package com.Vasilis.RealTimeChat.Chatroom;
 
+import com.Vasilis.RealTimeChat.accounts.AccountRecord;
 import com.Vasilis.RealTimeChat.chat.ChatMessage;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @Repository
@@ -18,9 +25,12 @@ public class ChatroomRepository {
     }
 
     private static ChatroomRecord chatroomMapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new ChatroomRecord(
-                rs.getInt("id")
-        );
+        return ChatroomRecord.builder()
+                .id(rs.getInt("id"))
+                .name(rs.getString("name"))
+                .code(rs.getString("code"))
+                .creatorID(rs.getInt("creatorId"))
+                .build();
     }
 
     private ChatMessage messagesMapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -32,6 +42,19 @@ public class ChatroomRepository {
                 .sender(rs.getString("sender"))
                 .build();
     }
+
+    private Boolean isCodeUnique(String code) {
+        String sql = "SELECT COUNT(*) FROM chatrooms WHERE code = ?";
+        Integer count = jdbcTemplate.queryForObject(sql,Integer.class,code);
+        return count == 0;
+    }
+
+    private boolean isUserInChatroom(Integer chatroomID, Integer userID) {
+        String sql = "SELECT COUNT(*) FROM chatrooms_accounts WHERE chatroomId = ? AND accountId = ?";
+        Integer count = jdbcTemplate.queryForObject(sql, Integer.class, chatroomID, userID);
+        return count != null && count > 0;
+    }
+
 
     public List<ChatroomRecord> getAllChat() {
         String sql = "SELECT * FROM chatrooms";
@@ -45,9 +68,61 @@ public class ChatroomRepository {
         return messagesList;
     }
 
-    public void createChatroom() {
-        String sql = "INSERT INTO Chatrooms DEFAULT VALUES";
-        jdbcTemplate.update(sql);
+    public Integer createChatroom(String name,String code,Integer creatorId) {
+
+        if(!isCodeUnique(code)){
+            throw new IllegalArgumentException("Code must be unique");
+        }
+
+        String sql = "INSERT INTO Chatrooms (name, code, creatorId) VALUES (?, ?, ?)";
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection ->   {
+            PreparedStatement ps = connection.prepareStatement(sql,new String[]{"id"});
+            ps.setString(1,name);
+            ps.setString(2,code);
+            ps.setInt(3,creatorId);
+            return ps;
+        }, keyHolder);
+        Number generatedKey =  keyHolder.getKey();
+        if(generatedKey == null) {
+            throw new IllegalStateException("Failed to retrieve generated key");
+        }
+        return generatedKey.intValue();
+    }
+
+    public void addAccountToChatroom(Integer chatroomID, Integer userID) {
+        if (chatroomID == null || userID == null) {
+            throw new IllegalArgumentException("chatroomID and userID cannot be null");
+        }
+        if (isUserInChatroom(chatroomID, userID)) {
+            System. out.println("User is already part of the chatroom.");
+            return;
+        }
+
+        String sql = "INSERT INTO chatrooms_accounts (chatroomID, accountID) VALUES (?, ?)";
+        jdbcTemplate.update(sql,chatroomID,userID);
+    }
+
+    public List<ChatroomRecord> getChatroomsByAccount(Integer accountId) {//Fix This
+        String sql = "SELECT chatroomId FROM chatrooms_accounts WHERE accountId = ?";
+        List<Integer> chatroomIds  = jdbcTemplate.queryForList(sql,Integer.class,accountId);
+        if (chatroomIds.isEmpty()) {
+            return new ArrayList<>();
+        }
+        System.out.println("SELECT * FROM chatrooms WHERE id IN (" + String.join(",", Collections.nCopies(chatroomIds.size(), "?")) + ")");
+        String chatroomSql = "SELECT * FROM chatrooms WHERE id IN (" + String.join(",", Collections.nCopies(chatroomIds.size(), "?")) + ")";
+        Object[] params = chatroomIds.toArray();
+        List<ChatroomRecord> chatrooms = jdbcTemplate.query(chatroomSql, new BeanPropertyRowMapper<>(ChatroomRecord.class), params);
+
+        return chatrooms;
+    }
+
+
+    public List<ChatroomRecord> getChatroomByCode(String code) {
+        String sql = "SELECT * FROM chatrooms WHERE code = ?";
+        List<ChatroomRecord> Chatroom = jdbcTemplate.query(sql,ChatroomRepository::chatroomMapRow,code);
+        return Chatroom;
     }
 
     public void createMessage(Integer chatroomId,String content,String sender,Integer sender_id){

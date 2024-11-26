@@ -1,21 +1,24 @@
-import React, {useState } from 'react'
+import React, {useEffect, useState } from 'react'
 import { useStompClient, useSubscription } from "react-stomp-hooks";
 
 import style from '../Styles/ChatRoomComponent.module.css'
 
 
-const ChatRoomComponent = ({usernameLogIn}) => {
+const ChatRoomComponent = ({usernameLogIn,userId,chatroomTitle,chatroomId}) => {
+
+  //Get chatroomTitle from back end when is implemented
 
   const [messages, setMessages] = useState([]);
   const [newMessage,setNewMessage] = useState("");
 
   const stompClient = useStompClient(); 
-  const [userColors, setUserColors] = useState({}); 
 
-  const colors = [
-    "#2763FF", "#A702FF", "#fdffb6", "#caffbf", "#9bf6ff", 
-    "#a0c4ff", "#bdb2ff", "#ffc6ff", "#fffffc",
-  ]; // Define an array of colors to cycle through
+  // const [userColors, setUserColors] = useState({}); 
+
+  // const colors = [
+  //   "#2763FF", "#A702FF", "#fdffb6", "#caffbf", "#9bf6ff", 
+  //   "#a0c4ff", "#bdb2ff", "#ffc6ff", "#fffffc",
+  // ]; // Define an array of colors to cycle through
 
 
   useSubscription("/topic/public",(message) => {
@@ -24,7 +27,6 @@ const ChatRoomComponent = ({usernameLogIn}) => {
   })
 
   function sendMessage(){
-    console.log(newMessage);
     if(stompClient && newMessage.trim() !==''){
         stompClient.publish({
             destination: '/app/chat.sendMessage',
@@ -35,12 +37,61 @@ const ChatRoomComponent = ({usernameLogIn}) => {
              })
         });
 
+        SaveMessage(usernameLogIn,userId,chatroomId,newMessage);
+
         setNewMessage("");
     }
   }
 
+  const SaveMessage = async (sender,senderId,chatroomId,body)=>{
+    const encodedMessageContent = encodeURIComponent(body);
+    try{
+      const results = await fetch("http://localhost:8080/chatroom/messages/create/"+sender+"@"+encodedMessageContent+"@"+chatroomId+"@"+senderId ,{
+        method:'PUT',
+        headers:{"Content-Type":"application/json"}
+      })
+
+      if(!results.ok){
+        throw new Error("Error with saving message");
+      }
+    }catch(err){
+      console.error("Error in SaveMessage function ",err)
+    }
+
+  }
+
+  useEffect(()=>{
+    const GetExistingMessages = async()=>{
+      try{
+        const results = await fetch("http://localhost:8080/chatroom/messages/get/all",{//Fix when query is implemented in backend
+          method:'GET',
+          headers:{"Content-Type":"application/json"}
+        })
+        if(!results.ok){
+          throw new Error("Error with getting message");
+        }
+        const data = await results.json();
+        data.forEach(element => {
+          setMessages((prev)=>{
+              if(!prev.some((existingChatroom)=> (existingChatroom.id === element.id))){
+                  return [...prev,element];
+              }
+              return prev;
+          });
+        });
+
+      }catch(err){
+        console.error("Error in GetExistingMessages function ",err)
+      }
+    }
+    GetExistingMessages();
+  },[])
+
+  
   return (
     <>
+    <div>{chatroomTitle}</div>
+    <div>{usernameLogIn}</div>
     <div className = {style.theInput}>
         <input className = {style.messageInput}
             placeholder ="Enter new message"

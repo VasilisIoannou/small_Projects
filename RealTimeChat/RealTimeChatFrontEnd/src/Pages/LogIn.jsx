@@ -13,20 +13,26 @@ const LogIn = () => {
 
   const navigate = useNavigate();
  
-  function moveToMainPage(usernamePass){
+  function moveToMenuPage(usernamePass){
     if (usernamePass.trim()) {
-        navigate('/chatroomHook', { state: { username : usernamePass } }); 
+        navigate('/menu', { state: { username : usernamePass } }); 
     } else {
         alert("Please enter a username!");
     }
   }
 
   function requestCreate(){
-    fetch('http://localhost:8080/account/create/'+username+'@'+password,{
+    const encodedUsername = encodeURIComponent(username);
+    const encodedPassword = encodeURIComponent(password)
+    fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{
       method: 'POST',
       headers: {"Content-Type":"application/json"}
-    }).then(responce => responce.json)
-    .catch(err => {
+    }).then(responce => {
+      if(!responce.ok){
+        throw new Error(`Failed to create account`);
+      }
+      return responce.json()
+    }).catch(err => {
       console.error("Failed to create card:", err);
     })
   }
@@ -36,7 +42,7 @@ const LogIn = () => {
     const data = await res.json();
 
     if(data.length > 0){
-      moveToMainPage(loginUsername)
+      moveToMenuPage(loginUsername)
     } else {
       console.log("Account Doesn't Exist")
     }
@@ -45,7 +51,7 @@ const LogIn = () => {
   function createUser(){
     //Dont allow duplicate accounts
     requestCreate()
-    moveToMainPage(username)
+    moveToMenuPage(username)
   }
 
   return (

@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/chatroom/")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173") // Allow requests from the frontend
 public class ChatRoomController {
     private final ChatroomRepository chatroomRepository;
     public ChatRoomController(ChatroomRepository chatroomRepository) {
@@ -49,8 +49,8 @@ public class ChatRoomController {
 
     @PutMapping("/account_chatroom/createConnection/{accountId_chatroomId}")
     public void addAccountToChatroom(@PathVariable String accountId_chatroomId){
-        Integer chatroomId = Integer.parseInt(accountId_chatroomId.split("@")[0]);
-        Integer senderId = Integer.parseInt(accountId_chatroomId.split("@")[1]);
+        Integer senderId = Integer.parseInt(accountId_chatroomId.split("@")[0]);
+        Integer chatroomId = Integer.parseInt(accountId_chatroomId.split("@")[1]);
         System.out.println(chatroomId+" "+senderId);
 
         chatroomRepository.addAccountToChatroom(chatroomId,senderId);
@@ -61,5 +61,4 @@ public class ChatRoomController {
         Integer accountId = Integer.parseInt(accountIdStr);
         return chatroomRepository.getChatroomsByAccount(accountId);
     }
-
 }

@@ -2,8 +2,11 @@ package com.Vasilis.RealTimeChat.accounts;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.support.GeneratedKeyHolder;
+import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
 
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
@@ -36,9 +39,20 @@ public class AccountRepository {
         return accounts;
     }
 
-    public void createAccount(String username, String password) {
+    public Integer createAccount(String username, String password) {
         String sql = "INSERT INTO accounts (username, password) VALUES (?, ?)";
-        jdbcTemplate.update(sql, username, password);
-        //return Id created
+
+        KeyHolder keyHolder = new GeneratedKeyHolder();
+        jdbcTemplate.update(connection ->   {
+            PreparedStatement ps = connection.prepareStatement(sql,new String[]{"id"});
+            ps.setString(1,username);
+            ps.setString(2,password);
+            return ps;
+        }, keyHolder);
+        Number generatedKey =  keyHolder.getKey();
+        if(generatedKey == null) {
+            throw new IllegalStateException("Failed to retrieve generated key");
+        }
+        return generatedKey.intValue();
     }
 }

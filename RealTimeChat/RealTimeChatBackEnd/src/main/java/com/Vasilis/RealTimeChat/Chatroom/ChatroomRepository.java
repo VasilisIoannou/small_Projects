@@ -99,6 +99,7 @@ public class ChatroomRepository {
             System. out.println("User is already part of the chatroom.");
             return;
         }
+        //Check if account or chatroom does not exists
 
         String sql = "INSERT INTO chatrooms_accounts (chatroomID, accountID) VALUES (?, ?)";
         jdbcTemplate.update(sql,chatroomID,userID);
@@ -110,7 +111,7 @@ public class ChatroomRepository {
         if (chatroomIds.isEmpty()) {
             return new ArrayList<>();
         }
-        System.out.println("SELECT * FROM chatrooms WHERE id IN (" + String.join(",", Collections.nCopies(chatroomIds.size(), "?")) + ")");
+
         String chatroomSql = "SELECT * FROM chatrooms WHERE id IN (" + String.join(",", Collections.nCopies(chatroomIds.size(), "?")) + ")";
         Object[] params = chatroomIds.toArray();
         List<ChatroomRecord> chatrooms = jdbcTemplate.query(chatroomSql, new BeanPropertyRowMapper<>(ChatroomRecord.class), params);

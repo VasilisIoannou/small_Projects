@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef} from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom';
 
@@ -6,49 +6,87 @@ const MenuPage = () => {
 
     const location = useLocation();
     const { username } = location.state || {}
+    const { password } = location.state || {}
 
     const [chatroomList,setChatroomList] = useState([]);
-
-    const [accountID,setAccountID] = useState(1);//Fix when bakc end is implemented
 
     const [chatroomName,setChatroomName] = useState(username+"'s chatroom");
     const [invitationCode,setInvitationCode] = useState("");
 
     const [joinCode,setJoinCode] = useState("");
 
+    const [accountId,setAccoountId]= useState(null);
     const navigate = useNavigate();
 
-    const CreateChatroom = async()=>{
+    const [uniqueCode,setUniqueCode] = useState(false);
+
+    const isInitialRender = useRef(true); 
+
+    const UniqueInvitationCode = async()=>{
         try{
-            const responce = await fetch("http://localhost:8080/chatroom/room/create/"+chatroomName+"@"+invitationCode+"@"+accountID,{
-                method: 'PUT',
+            const codeResult = await fetch( "http://localhost:8080/chatroom/room/get/code/"+invitationCode,{
+                method: 'GET',
                 headers: {"Content-Type":"application/json"}
-            });
+            })
 
-            if(!responce.ok){
-                throw new Error("Failed to create chatroom")
-            }
+            const data = await codeResult.json();
+            console.log("data",data)
+            
+            const isUnique = data === null || (Array.isArray(data) && data.length === 0);
+            console.log("Is invitation code unique?", isUnique);
+    
+            return isUnique;
 
-            const data = await responce.json();
-            const newChatroom = {
-                id: data,
-                name: chatroomName,
-                code: invitationCode
-            }
-            setChatroomList((prev) => [...prev,newChatroom])
-
-            ConnectAccountAndChatroom(data);
-
-        }catch(err){
-            console.error("There was an error creating a chatroom", err);
-            return null;
+        } catch (err) {
+            console.error("Error checking unique code:", err);
+            return false;
         }
+
+    }
+
+    useEffect(()=>{
+        const RequestCreate = async() =>{
+            try{
+                const responce = await fetch("http://localhost:8080/chatroom/room/create/"+chatroomName+"@"+invitationCode+"@"+accountId,{
+                    method: 'PUT',
+                    headers: {"Content-Type":"application/json"}
+                });
+    
+                if(!responce.ok){
+                    throw new Error("Failed to create chatroom")
+                }
+    
+                const data = await responce.json();
+                const newChatroom = {
+                    id: data,
+                    name: chatroomName,
+                    code: invitationCode
+                }
+                setChatroomList((prev) => [...prev,newChatroom])
+                ConnectAccountAndChatroom(data);
+    
+            }catch(err){
+                console.error("There was an error creating a chatroom", err);
+                return null;
+            }
+        }
+
+        console.log("uniqueCode:",uniqueCode);
+        if(uniqueCode === true){
+            console.log("In true uniqueCode:",uniqueCode);
+            RequestCreate();
+        }
+    },[uniqueCode])
+
+    const CreateChatroom = async ()=>{
+        const isUnique = await UniqueInvitationCode();
+        console.log("CreateChatroom function:",isUnique)
+        setUniqueCode(isUnique);
     }
 
     function GotoChatroom(title,chatroomCode,chatroomId){
-        //Make other route for each chatroom
         console.log(title)
-        navigate(`/chatroom/${chatroomCode}`,{ state: { chatroomTitle : title , username: username, userId:accountID, chatroomId: chatroomId} })
+        navigate(`/chatroom/${chatroomCode}`,{ state: { chatroomTitle : title , username: username, userId:accountId, chatroomId: chatroomId} })
     }
 
 
@@ -85,6 +123,7 @@ const MenuPage = () => {
         }
         
     }
+
     const EnterChatroom = async(code) =>{
         const currentChatroom = await CheckCode(code);
         console.log(currentChatroom);
@@ -95,9 +134,11 @@ const MenuPage = () => {
         }
         
     }
-    const ConnectAccountAndChatroom = async (chatroomId)=>{
+
+    const ConnectAccountAndChatroom = async (chatroomId)=>{//Fix?
         try{
-            const results = fetch("http://localhost:8080/chatroom/account_chatroom/createConnection/"+accountID+"@"+1+chatroomId,{
+            console.log("Connecting the room",chatroomId,"with",accountId)
+            const results = fetch("http://localhost:8080/chatroom/account_chatroom/createConnection/"+accountId+"@"+chatroomId,{
                 method:"PUT",
                 headers:{"Content-Type":"application/json"}
             })
@@ -105,18 +146,34 @@ const MenuPage = () => {
                 throw new Error("Error with getiing existing classrooms")
             }
         }catch(err){
-            console.error("Error in the getExistingChatrooms function",err)
+            console.error("Error in the ConnectAccountAndChatroom function",err)
         }
     }
 
     //fetch chatrrom data from back end
     useEffect(()=>{
+        const getAccount = async() => {
+            const accountResult = await fetch("http://localhost:8080/account/get/"+username+"@"+password,{
+                method: 'GET',
+                headers: {"Content-Type":"application/json"}
+            })
+
+            const data = await accountResult.json();
+            setAccoountId(data[0].id);
+        }
+
+        getAccount();
+    },[])
+
+    useEffect(()=>{
+        if (!accountId || !isInitialRender.current) return; // Wait until accountId is available   
         const getExistingChatrooms = async()=>{
             try{
-                const results = await fetch("http://localhost:8080/chatroom/room/get/all",{
+                const results = await fetch("http://localhost:8080/chatroom/account_chatroom/getChatroomsByAccount/"+accountId,{
                     method:'GET',
                     headers:{"Content-Type":"application/json"}
                 })
+
                 if(!results.ok){
                     throw new Error("Error with getiing existing classrooms")
                 }
@@ -125,19 +182,27 @@ const MenuPage = () => {
 
                 data.forEach(element => {
                     setChatroomList((prev)=>{
-                        if(!prev.some((existingChatroom)=> (existingChatroom.id === element.id))){//When implemented in the backend Add unique to each account
+                        if(!prev.some((existingChatroom)=> (existingChatroom.id === element.id))){
                             return [...prev,element];
                         }
                         return prev;
                     });
                 });
+
+                isInitialRender.current = false;
             }catch(err){
                 console.error("Error in the getExistingChatrooms function",err)
-            }}
+        }}
 
-        getExistingChatrooms();
-    },[])
+        if(isInitialRender.current){
+            getExistingChatrooms();
+        }
+    },[accountId])
 
+    function EnterToNewChatroom(joinCode){
+        //Make connection to the chatroom
+        EnterChatroom(joinCode)
+    }
   return (
     <>
     {username !== '' ? (//Make it pretty
@@ -165,7 +230,7 @@ const MenuPage = () => {
                 onChange={(e)=> setJoinCode(e.target.value)}
                 type = "password" 
             />
-            <button onClick={()=>EnterChatroom(joinCode)}>join Chat Room</button>
+            <button onClick={()=>EnterToNewChatroom(joinCode)}>join Chat Room</button>
         </div>
         <div>Your Chatrooms</div>
         {chatroomList.map((chatroomInstance,id)=>{

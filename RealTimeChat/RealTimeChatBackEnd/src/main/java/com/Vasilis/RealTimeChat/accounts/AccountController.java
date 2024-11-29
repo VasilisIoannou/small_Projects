@@ -26,9 +26,9 @@ public class AccountController {
     }
 
     @PostMapping("create/{username_password}")
-    public void createAccount(@PathVariable String username_password){
+    public Integer createAccount(@PathVariable String username_password){
         String username = username_password.split("@")[0];
         String password = username_password.split("@")[1];
-        accountRepository.createAccount(username,password);
+        return accountRepository.createAccount(username,password);
     }
 }

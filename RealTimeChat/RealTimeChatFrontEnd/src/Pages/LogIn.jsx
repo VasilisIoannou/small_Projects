@@ -11,30 +11,36 @@ const LogIn = () => {
   const [loginUsername,setLoginUsername] = useState(""); 
   const [loginPassword,setLoginPassword] = useState("");  
 
+  const [accountId,setAccountID] = useState(-1);
+
   const navigate = useNavigate();
  
-  function moveToMenuPage(usernamePass){
+  function moveToMenuPage(usernamePass,userPassword){
     if (usernamePass.trim()) {
-        navigate('/menu', { state: { username : usernamePass } }); 
+        navigate('/menu', { state: { username : usernamePass, password:userPassword} }); 
     } else {
         alert("Please enter a username!");
     }
   }
 
-  function requestCreate(){
+  const requestCreate = async()=>{
     const encodedUsername = encodeURIComponent(username);
-    const encodedPassword = encodeURIComponent(password)
-    fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{
-      method: 'POST',
-      headers: {"Content-Type":"application/json"}
-    }).then(responce => {
+    const encodedPassword = encodeURIComponent(password);
+    try{
+      const responce = await fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{
+        method: 'POST',
+        headers: {"Content-Type":"application/json"}
+      })
+
       if(!responce.ok){
         throw new Error(`Failed to create account`);
       }
-      return responce.json()
-    }).catch(err => {
+
+      const data = await responce.json();
+      return data;
+    }catch(err){
       console.error("Failed to create card:", err);
-    })
+    }
   }
 
   const logInUser = async() =>{
@@ -42,17 +48,22 @@ const LogIn = () => {
     const data = await res.json();
 
     if(data.length > 0){
-      moveToMenuPage(loginUsername)
+      moveToMenuPage(loginUsername,loginPassword)
     } else {
       console.log("Account Doesn't Exist")
     }
   }
 
-  function createUser(){
-    //Dont allow duplicate accounts
-    requestCreate()
-    moveToMenuPage(username)
-  }
+  const createUser = async () => {//Dont allow duplicate accounts
+    try {
+      const newId = await requestCreate();
+      setAccountID(newId); 
+
+      moveToMenuPage(username, password);
+    } catch (error) {
+      console.error("Error creating user:", error);
+    }
+  };
 
   return (
     <div className ={style.loginPage}>

@@ -199,8 +199,8 @@ const MenuPage = () => {
         }
     },[accountId])
 
-    function EnterToNewChatroom(joinCode){
-        //Make connection to the chatroom
+    const EnterToNewChatroom = async(joinCode) => {
+        //Make a function to connect account with chat room code
         EnterChatroom(joinCode)
     }
   return (

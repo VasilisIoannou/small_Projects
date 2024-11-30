@@ -105,6 +105,31 @@ public class ChatroomRepository {
         jdbcTemplate.update(sql,chatroomID,userID);
     }
 
+    public void addAcountToChatroomByCode(String code, Integer userID) {
+        if (code == null || userID == null) {
+            throw new IllegalArgumentException("code and userID cannot be null");
+        }
+
+        //get chatroomID
+        List<ChatroomRecord> chatroomIDList = getChatroomByCode(code);
+
+        if(chatroomIDList == null || chatroomIDList.isEmpty()){
+            throw new IllegalArgumentException("That chatroom doesnt't exists");
+        }
+
+        Integer chatroomId = chatroomIDList.get(0).getId();
+
+        if (isUserInChatroom(chatroomId, userID)) {
+            System. out.println("User is already part of the chatroom.");
+            return;
+        }
+
+        addAccountToChatroom(chatroomId, userID);
+
+
+
+    }
+
     public List<ChatroomRecord> getChatroomsByAccount(Integer accountId) {//Fix This
         String sql = "SELECT chatroomId FROM chatrooms_accounts WHERE accountId = ?";
         List<Integer> chatroomIds  = jdbcTemplate.queryForList(sql,Integer.class,accountId);

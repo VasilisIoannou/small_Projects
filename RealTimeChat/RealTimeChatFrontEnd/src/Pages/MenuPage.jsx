@@ -64,6 +64,8 @@ const MenuPage = () => {
                 }
                 setChatroomList((prev) => [...prev,newChatroom])
                 ConnectAccountAndChatroom(data);
+                setInvitationCode("");
+                setChatroomName("");
     
             }catch(err){
                 console.error("There was an error creating a chatroom", err);
@@ -71,16 +73,13 @@ const MenuPage = () => {
             }
         }
 
-        console.log("uniqueCode:",uniqueCode);
         if(uniqueCode === true){
-            console.log("In true uniqueCode:",uniqueCode);
             RequestCreate();
         }
     },[uniqueCode])
 
     const CreateChatroom = async ()=>{
         const isUnique = await UniqueInvitationCode();
-        console.log("CreateChatroom function:",isUnique)
         setUniqueCode(isUnique);
     }
 
@@ -137,20 +136,18 @@ const MenuPage = () => {
 
     const ConnectAccountAndChatroom = async (chatroomId)=>{//Fix?
         try{
-            console.log("Connecting the room",chatroomId,"with",accountId)
-            const results = fetch("http://localhost:8080/chatroom/account_chatroom/createConnection/"+accountId+"@"+chatroomId,{
+            const results = await fetch("http://localhost:8080/chatroom/account_chatroom/createConnection/"+accountId+"@"+chatroomId,{
                 method:"PUT",
                 headers:{"Content-Type":"application/json"}
             })
             if(!results.ok){
-                throw new Error("Error with getiing existing classrooms")
+                throw new Error("Error with connect account and chatrooms")
             }
         }catch(err){
             console.error("Error in the ConnectAccountAndChatroom function",err)
         }
     }
 
-    //fetch chatrrom data from back end
     useEffect(()=>{
         const getAccount = async() => {
             const accountResult = await fetch("http://localhost:8080/account/get/"+username+"@"+password,{
@@ -175,7 +172,7 @@ const MenuPage = () => {
                 })
 
                 if(!results.ok){
-                    throw new Error("Error with getiing existing classrooms")
+                    throw new Error("Error with getiing existing classrooms ",accountId)
                 }
 
                 const data = await results.json();
@@ -206,13 +203,14 @@ const MenuPage = () => {
         })
 
         if(!results.ok){
-            throw new Error("Error with  connecting classrooms and teh account by code");
+            throw new Error("Error with  connecting classrooms and the account by code");
         }
     }
 
     const EnterToNewChatroom = async(Code) => {
         addAccountByCode(Code)
         EnterChatroom(Code)
+        setJoinCode("");
     }
   return (
     <>

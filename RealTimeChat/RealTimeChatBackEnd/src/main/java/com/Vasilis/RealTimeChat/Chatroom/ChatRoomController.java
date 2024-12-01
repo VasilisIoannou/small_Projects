@@ -25,8 +25,14 @@ public class ChatRoomController {
         return chatroomRepository.getAllMessages();
     }
 
+    @GetMapping("messages/get/{chatroomId}")
+    public List<ChatMessage> getMessagesByChatroomId(@PathVariable("chatroomId") String chatroomId){
+        Integer chatroomIDInteger = Integer.parseInt(chatroomId);
+        return chatroomRepository.getMessagesByChatroomId(chatroomIDInteger);
+    }
+
     @GetMapping("room/get/code/{code}")
-    public List<ChatroomRecord> getChatroomByCode(@PathVariable String code){
+    public List<ChatroomRecord> getChatroomByCode(@PathVariable("code") String code){
         return chatroomRepository.getChatroomByCode(code);
     }
 
@@ -67,5 +73,5 @@ public class ChatRoomController {
         String code = code_userId.split("@")[0];
         Integer userId = Integer.parseInt(code_userId.split("@")[1]);
         chatroomRepository.addAcountToChatroomByCode(code,userId);
-    }  
+    }
 }

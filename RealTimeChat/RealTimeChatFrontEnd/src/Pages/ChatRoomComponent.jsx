@@ -63,7 +63,7 @@ const ChatRoomComponent = ({usernameLogIn,userId,chatroomTitle,chatroomId}) => {
   useEffect(()=>{
     const GetExistingMessages = async()=>{
       try{
-        const results = await fetch("http://localhost:8080/chatroom/messages/get/all",{//Fix when query is implemented in backend
+        const results = await fetch("http://localhost:8080/chatroom/messages/get/"+chatroomId,{
           method:'GET',
           headers:{"Content-Type":"application/json"}
         })

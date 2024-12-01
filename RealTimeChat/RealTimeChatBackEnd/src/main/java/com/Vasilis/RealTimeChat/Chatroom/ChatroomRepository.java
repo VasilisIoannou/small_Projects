@@ -155,4 +155,10 @@ public class ChatroomRepository {
         String sql = "INSERT INTO messages (chatroom_id,content,sender_id,sender) VALUES(?,?,?,?)";
         jdbcTemplate.update(sql,chatroomId,content,sender_id,sender);
     }
+
+    public List<ChatMessage> getMessagesByChatroomId(Integer chatroomId){
+        String sql = "SELECT * FROM messages WHERE chatroom_id = ?";
+        List<ChatMessage> messages = jdbcTemplate.query(sql,this::messagesMapRow,chatroomId);
+        return messages;
+    }
 }

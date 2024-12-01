@@ -199,9 +199,20 @@ const MenuPage = () => {
         }
     },[accountId])
 
-    const EnterToNewChatroom = async(joinCode) => {
-        //Make a function to connect account with chat room code
-        EnterChatroom(joinCode)
+    const addAccountByCode = async (Code) =>{
+        const results = fetch("http://localhost:8080/chatroom/account_chatroom/addAcountToChatroomByCode/"+Code+"@"+accountId,{
+            method: 'PUT',
+            headers: {"Content-Type":"application/json"}
+        })
+
+        if(!results.ok){
+            throw new Error("Error with  connecting classrooms and teh account by code");
+        }
+    }
+
+    const EnterToNewChatroom = async(Code) => {
+        addAccountByCode(Code)
+        EnterChatroom(Code)
     }
   return (
     <>

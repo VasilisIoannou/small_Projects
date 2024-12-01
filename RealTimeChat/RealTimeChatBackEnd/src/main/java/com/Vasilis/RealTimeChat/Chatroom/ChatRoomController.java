@@ -61,4 +61,11 @@ public class ChatRoomController {
         Integer accountId = Integer.parseInt(accountIdStr);
         return chatroomRepository.getChatroomsByAccount(accountId);
     }
+
+    @PutMapping("/account_chatroom/addAcountToChatroomByCode/{code_userId}")
+    public void addAcountToChatroomByCode(@PathVariable String code_userId){
+        String code = code_userId.split("@")[0];
+        Integer userId = Integer.parseInt(code_userId.split("@")[1]);
+        chatroomRepository.addAcountToChatroomByCode(code,userId);
+    }  
 }

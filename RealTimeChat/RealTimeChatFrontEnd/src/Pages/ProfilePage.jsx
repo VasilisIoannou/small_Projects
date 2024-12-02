@@ -13,8 +13,8 @@ const ProfilePage = () => {
     
     useEffect(()=>{
         const FetchAccountData = ()=>{
-            const results = fetch("http://localhost:8080/account/get/"+profileId,{
-                
+            const results = fetch("http://localhost:8080/account/getById/"+profileId,{
+
             })
         }
     },[])

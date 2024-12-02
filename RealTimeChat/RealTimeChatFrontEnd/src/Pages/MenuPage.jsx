@@ -161,7 +161,7 @@ const MenuPage = () => {
 
     useEffect(()=>{
         const getAccount = async() => {
-            const accountResult = await fetch("http://localhost:8080/account/get/"+username+"@"+password,{
+            const accountResult = await fetch("http://localhost:8080/account/getByUsernamePassword/"+username+"@"+password,{
                 method: 'GET',
                 headers: {"Content-Type":"application/json"}
             })
@@ -246,8 +246,6 @@ const MenuPage = () => {
         <>
         <div> Welcome {username} </div>
         <button onClick={()=>GoToAccountPage()}>Account Settings</button>
-        <div>
-            <input 
         <br/>
         <p className = {style.test}> Welcome</p>
         <p className = {style.username}> {username} </p>
@@ -260,7 +258,7 @@ const MenuPage = () => {
                 value = {chatroomName}
                 onChange={(e) => setChatroomName(e.target.value)}
             />
-             <input input className = {style.NewChatroomCode}
+             <input className = {style.NewChatroomCode}
                 placeholder="Set invitation code"
                 type = "password"
                 value = {invitationCode}
@@ -286,16 +284,13 @@ const MenuPage = () => {
         {chatroomList.map((chatroomInstance,id)=>{
             //Make a Card Component
             return(
-            <div key={id}> 
-               <div> Name: {chatroomInstance.name} </div> 
-               <div> Code: {chatroomInstance.code} </div> 
-               <button onClick={()=> GotoChatroom(chatroomInstance.name,chatroomInstance.code,chatroomInstance.id)}> Enter </button>
-               <button onClick={()=>DeleteChatroom(chatroomInstance.id)}>Delete</button>
+            <div key={id}>                
                 <div  className = {style.Chatrooms} >
                     <div> Name: {chatroomInstance.name} </div> 
                     <div> Code: {chatroomInstance.code} </div> 
                 </div>
                 <button onClick={()=> GotoChatroom(chatroomInstance.name,chatroomInstance.code,chatroomInstance.id)}> Enter </button>
+                <button onClick={()=>DeleteChatroom(chatroomInstance.id)}>Delete</button>
             </div>
             )
         })}

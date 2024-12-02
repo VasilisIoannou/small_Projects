@@ -18,13 +18,13 @@ public class AccountController {
         return accountRepository.getAll();
     }
 
-    @GetMapping("get/{username_password}") //This doesnt feel safe
+    @GetMapping("getByUsernamePassword/{username_password}") //This doesnt feel safe
     public List<AccountRecord> getByUsernameAndPassword(@PathVariable String username_password){
         String username = username_password.split("@")[0];
         String password = username_password.split("@")[1];
         return accountRepository.findByUsernameAndPassword(username,password);
     }
-    @GetMapping("get/{id}")
+    @GetMapping("getById/{id}")
     public List<AccountRecord> getById(@PathVariable int id){
         return accountRepository.getAccountById(id);
     }

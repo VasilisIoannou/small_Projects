@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef} from 'react'
 import { useLocation } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom';
+import style from '../Styles/MenuPage.module.css'
 
 const MenuPage = () => {
 
@@ -10,7 +11,7 @@ const MenuPage = () => {
 
     const [chatroomList,setChatroomList] = useState([]);
 
-    const [chatroomName,setChatroomName] = useState(username+"'s chatroom");
+    const [chatroomName,setChatroomName] = useState(username+"'s Chatroom");
     const [invitationCode,setInvitationCode] = useState("");
 
     const [joinCode,setJoinCode] = useState("");
@@ -129,7 +130,7 @@ const MenuPage = () => {
         if(currentChatroom !== null){
             GotoChatroom(currentChatroom.name,currentChatroom.code,currentChatroom.id);
         }else{
-            console.log("The chatroom doesnt exists");
+            console.log("The chatroom doesn't exist");
         }
         
     }
@@ -141,7 +142,7 @@ const MenuPage = () => {
                 headers:{"Content-Type":"application/json"}
             })
             if(!results.ok){
-                throw new Error("Error with connect account and chatrooms")
+                throw new Error("Error connecting account and chatrooms")
             }
         }catch(err){
             console.error("Error in the ConnectAccountAndChatroom function",err)
@@ -213,42 +214,53 @@ const MenuPage = () => {
         setJoinCode("");
     }
   return (
-    <>
-    {username !== '' ? (//Make it pretty
+    <div className = {style.Menu}>
+    {username !== '' ? (//Make it pretty ok re
         <>
-        <div> Welcome {username} </div>
+        <br/>
+        <p className = {style.test}> Welcome</p>
+        <p className = {style.username}> {username} </p>
+        <p className = {style.test}> ! </p> <br/><br/>
+        <p className = {style.text}> You can create a new chatroom</p>
 
-        <div>
-            <input 
+        <div className = {style.NewChatroom}>
+            <input className = {style.NewChatroomName}
                 placeholder="Chatroom's name"
                 value = {chatroomName}
                 onChange={(e) => setChatroomName(e.target.value)}
             />
-             <input 
-                placeholder="Chatroom's invitation code"
+             <input input className = {style.NewChatroomCode}
+                placeholder="Set invitation code"
                 type = "password"
                 value = {invitationCode}
                 onChange={(e) => setInvitationCode(e.target.value)}
             />
-            <button onClick={CreateChatroom}>Create Chat Room</button>
+            <button className = {style.NewChatroomButton} onClick={CreateChatroom}>Create Chat Room</button>
         </div>
-        <div>
-            <input 
-                placeholder='invitation code' 
+        <br/>
+        <p className = {style.text}> Or join one using an invitation code!</p>
+        
+        <div className = {style.JoinChatroom}>
+            <input className = {style.JoinChatroomCode}
+                placeholder='Invitation code' 
                 value = {joinCode}
                 onChange={(e)=> setJoinCode(e.target.value)}
                 type = "password" 
             />
-            <button onClick={()=>EnterToNewChatroom(joinCode)}>join Chat Room</button>
+            <button className = {style.JoinChatroomButton} onClick={()=>EnterToNewChatroom(joinCode)}>Join Chat Room</button>
         </div>
-        <div>Your Chatrooms</div>
+        
+        <br/>
+        <div className = {style.test}>Your Chatrooms</div>
         {chatroomList.map((chatroomInstance,id)=>{
             //Make a Card Component
             return(
             <div key={id}> 
-               <div> Name: {chatroomInstance.name} </div> 
-               <div> Code: {chatroomInstance.code} </div> 
-               <button onClick={()=> GotoChatroom(chatroomInstance.name,chatroomInstance.code,chatroomInstance.id)}> Enter </button>
+                <div  className = {style.Chatrooms} >
+                    <div> Name: {chatroomInstance.name} </div> 
+                    <div> Code: {chatroomInstance.code} </div> 
+                </div>
+                <button onClick={()=> GotoChatroom(chatroomInstance.name,chatroomInstance.code,chatroomInstance.id)}> Enter </button>
             </div>
             )
         })}
@@ -259,7 +271,7 @@ const MenuPage = () => {
         <button> Go to Log In Page </button>
         </>
     )}
-    </>
+    </div>
   )
 }
 

@@ -6,7 +6,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/account/")
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173")
 public class AccountController {
     private final AccountRepository accountRepository;
     public AccountController(AccountRepository accountRepository) {

@@ -6,7 +6,7 @@ import LogIn from './Pages/LogIn'
 import Custom404Page from './Pages/Custom404Page'
 import MainLayout from './Layout/MainLayout'
 import ChatRoomHook from './Pages/ChatRoomHook'
-
+import ProfilePage from './Pages/ProfilePage'
 
 
 const App = () => {
@@ -17,6 +17,7 @@ const App = () => {
         <Route index path ="/login" element={<LogIn />} />
         <Route index path="/menu" element={<MenuPage />} />
         <Route index path="/chatroom/:chatroomId" element ={<ChatRoomHook />}/>
+        <Route index path="/profile/:profileId" element = {<ProfilePage />}/>
         <Route path="*" element={<Custom404Page />} />
       </Route>
     )

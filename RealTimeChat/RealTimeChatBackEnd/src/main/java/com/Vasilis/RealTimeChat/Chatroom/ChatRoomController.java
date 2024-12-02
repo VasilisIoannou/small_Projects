@@ -74,4 +74,10 @@ public class ChatRoomController {
         Integer userId = Integer.parseInt(code_userId.split("@")[1]);
         chatroomRepository.addAcountToChatroomByCode(code,userId);
     }
+
+    @DeleteMapping("/chatroom/delete/{chatroomId}")
+    public void deleteChatroom(@PathVariable Integer chatroomId){
+        chatroomRepository.deleteChatroom(chatroomId);
+    }
+
 }

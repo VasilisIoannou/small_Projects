@@ -161,4 +161,18 @@ public class ChatroomRepository {
         List<ChatMessage> messages = jdbcTemplate.query(sql,this::messagesMapRow,chatroomId);
         return messages;
     }
+
+    public void deleteChatroom(Integer chatroomId) {
+        //Delete from chatrooms-accounts
+        String sqlAcounts_chatrooms = "DELETE FROM chatrooms_accounts WHERE chatroomId = ?";
+        jdbcTemplate.update(sqlAcounts_chatrooms,chatroomId);
+        //Delete from chatrooms
+        String sqlChatrooms = "DELETE FROM chatrooms WHERE id = ?";
+        int rowsAffected = jdbcTemplate.update(sqlChatrooms,chatroomId);
+
+        if (rowsAffected == 0) {
+            throw new IllegalArgumentException("Chatroom with ID " + chatroomId + " not found.");
+        }
+
+    }
 }

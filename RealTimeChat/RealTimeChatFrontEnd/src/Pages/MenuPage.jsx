@@ -30,14 +30,19 @@ const MenuPage = () => {
             })
 
             const data = await codeResult.json();
-            console.log("data",data)
+            //console.log("data",data)
             
             const isUnique = data === null || (Array.isArray(data) && data.length === 0);
-            console.log("Is invitation code unique?", isUnique);
+            //console.log("Is invitation code unique?", isUnique);
+
+            if(!isUnique){
+                alert("Sorry that code already exists");
+                setInvitationCode("")
+            }
     
             return isUnique;
 
-        } catch (err) {
+        }catch (err) {
             console.error("Error checking unique code:", err);
             return false;
         }
@@ -47,6 +52,7 @@ const MenuPage = () => {
     useEffect(()=>{
         const RequestCreate = async() =>{
             try{
+                console.log("create")
                 const responce = await fetch("http://localhost:8080/chatroom/room/create/"+chatroomName+"@"+invitationCode+"@"+accountId,{
                     method: 'PUT',
                     headers: {"Content-Type":"application/json"}
@@ -75,6 +81,7 @@ const MenuPage = () => {
 
         if(uniqueCode === true){
             RequestCreate();
+            setUniqueCode(false);
         }
     },[uniqueCode])
 
@@ -84,8 +91,11 @@ const MenuPage = () => {
     }
 
     function GotoChatroom(title,chatroomCode,chatroomId){
-        console.log(title)
         navigate(`/chatroom/${chatroomCode}`,{ state: { chatroomTitle : title , username: username, userId:accountId, chatroomId: chatroomId} })
+    }
+
+    const GoToAccountPage = ()=>{
+        navigate(`/profile/${accountId}`,{ state: { profileId : accountId } })
     }
 
 
@@ -212,12 +222,29 @@ const MenuPage = () => {
         EnterChatroom(Code)
         setJoinCode("");
     }
+
+    const DeleteChatroom = async(chatroomId)=>{
+        try{
+            const result = await fetch("http://localhost:8080/chatroom/chatroom/delete/"+chatroomId,{
+                method:'DELETE',
+                headers:{"Content-Type":"application/json"}
+            })
+
+            if(!result.ok){
+                throw new Error("Error with deleting chatroom")
+            }
+
+            setChatroomList((prev)=> prev.filter(chatroom => chatroom.id !== chatroomId))
+        }catch(err){
+            console.error("Error in the DeleteCHatroom function",err)
+        }
+    }
   return (
     <>
     {username !== '' ? (//Make it pretty
         <>
         <div> Welcome {username} </div>
-
+        <button onClick={()=>GoToAccountPage()}>Account Settings</button>
         <div>
             <input 
                 placeholder="Chatroom's name"
@@ -249,6 +276,7 @@ const MenuPage = () => {
                <div> Name: {chatroomInstance.name} </div> 
                <div> Code: {chatroomInstance.code} </div> 
                <button onClick={()=> GotoChatroom(chatroomInstance.name,chatroomInstance.code,chatroomInstance.id)}> Enter </button>
+               <button onClick={()=>DeleteChatroom(chatroomInstance.id)}>Delete</button>
             </div>
             )
         })}

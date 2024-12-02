@@ -27,7 +27,7 @@ const LogIn = () => {
     const encodedUsername = encodeURIComponent(username);
     const encodedPassword = encodeURIComponent(password);
     try{
-      const responce = await fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{
+      const responce = await fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{//Check username Uniqueness
         method: 'POST',
         headers: {"Content-Type":"application/json"}
       })

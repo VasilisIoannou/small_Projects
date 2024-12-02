@@ -24,6 +24,10 @@ public class AccountController {
         String password = username_password.split("@")[1];
         return accountRepository.findByUsernameAndPassword(username,password);
     }
+    @GetMapping("get/{id}")
+    public List<AccountRecord> getById(@PathVariable int id){
+        return accountRepository.getAccountById(id);
+    }
 
     @PostMapping("create/{username_password}")
     public Integer createAccount(@PathVariable String username_password){
@@ -31,4 +35,23 @@ public class AccountController {
         String password = username_password.split("@")[1];
         return accountRepository.createAccount(username,password);
     }
+    @PostMapping("updateUsername/{accountId_newUsername}")
+    public void updateUsername(@PathVariable String accountId_newUsername){
+        Integer accountId = Integer.parseInt(accountId_newUsername.split("@")[0]);
+        String newUsername = accountId_newUsername.split("@")[1];
+        accountRepository.changeAccountName(accountId,newUsername);
+    }
+
+    @PostMapping("updatePassword/{accountId_newPassword}")
+    public void updatePassword(@PathVariable String accountId_newPassword){
+        Integer accountId = Integer.parseInt(accountId_newPassword.split("@")[0]);
+        String newPassword = accountId_newPassword.split("@")[1];
+        accountRepository.changeAccountName(accountId,newPassword);
+    }
+
+    @DeleteMapping("delete/{id}")
+    public void deleteAccount(@PathVariable int id){
+        accountRepository.deleteAccount(id);
+    }
+
 }

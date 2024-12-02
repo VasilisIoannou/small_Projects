@@ -33,6 +33,12 @@ public class AccountRepository {
         return accounts;
     }
 
+    public List<AccountRecord> getAccountById(Integer id) {
+        String sql = "SELECT * FROM accounts WHERE id = ?";
+        List<AccountRecord> accounts = jdbcTemplate.query(sql, AccountRepository::mapRow, id);
+        return accounts;
+    }
+
     public List<AccountRecord> findByUsernameAndPassword(String username, String password) {
         String sql = "SELECT * FROM accounts WHERE username = ? AND password = ?";
         List<AccountRecord> accounts = jdbcTemplate.query(sql, AccountRepository::mapRow, username, password);
@@ -55,4 +61,20 @@ public class AccountRepository {
         }
         return generatedKey.intValue();
     }
+
+    public void deleteAccount(Integer id) {
+        String sql = "DELETE FROM accounts WHERE id = ?";
+        jdbcTemplate.update(sql, id);
+    }
+
+    public void changeAccountName(Integer id, String newUsername) {
+        String sql = "UPDATE accounts SET username = ? WHERE id = ?";
+        jdbcTemplate.update(sql, newUsername, id);
+    }
+
+    public void changeAccountPassword(Integer id, String newPassword) {
+        String sql = "UPDATE accounts SET password = ? WHERE id = ?";
+        jdbcTemplate.update(sql, newPassword, id);
+    }
+
 }

@@ -71,12 +71,12 @@ const LogIn = () => {
       <div>Sign Up</div>
       <div className = {style.things}>
           <input className ={style.usernameInput}
-              placeholder='username...' 
+              placeholder='Enter a username' 
               value = {username}
               onChange={(e) => setUsername(e.target.value)}
           />
           <input className ={style.usernameInput}
-              placeholder='password...' 
+              placeholder='Enter a password' 
               type = "password"
               value = {password}
               onChange={(e) => setPassword(e.target.value)}
@@ -89,12 +89,12 @@ const LogIn = () => {
       <div>Log In</div>
       <div className = {style.things}>
           <input className ={style.usernameInput}
-              placeholder='username...' 
+              placeholder='Enter your username' 
               value = {loginUsername}
               onChange={(e) => setLoginUsername(e.target.value)}
           />
           <input className ={style.usernameInput}
-              placeholder='password...' 
+              placeholder='Enter your password' 
               type = "password"
               value = {loginPassword}
               onChange={(e) => setLoginPassword(e.target.value)}

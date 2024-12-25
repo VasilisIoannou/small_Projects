@@ -6,17 +6,19 @@ import style from '../Styles/MenuPage.module.css'
 const MenuPage = () => {
 
     const location = useLocation();
-    const { username } = location.state || {}
-    const { password } = location.state || {}
+    const { accountNavId } = location.state || {}
+
+    const [username,setUsername] = useState("");
+    const [password,setPassword] = useState("");
 
     const [chatroomList,setChatroomList] = useState([]);
 
-    const [chatroomName,setChatroomName] = useState(username+"'s Chatroom");
+    const [chatroomName,setChatroomName] = useState(username +"'s Chatroom");
     const [invitationCode,setInvitationCode] = useState("");
 
     const [joinCode,setJoinCode] = useState("");
 
-    const [accountId,setAccoountId]= useState(null);
+    const [accountId,setAccoountId]= useState(accountNavId);
     const navigate = useNavigate();
 
     const [uniqueCode,setUniqueCode] = useState(false);
@@ -96,7 +98,7 @@ const MenuPage = () => {
     }
 
     const GoToAccountPage = ()=>{
-        navigate(`/profile/${accountId}`,{ state: { profileId : accountId } })
+        navigate(`/profile/${accountId}`,{ state: { profileId : accountId,yourProfileId: accountId , yourProfile: true } })
     }
 
 
@@ -160,17 +162,27 @@ const MenuPage = () => {
     }
 
     useEffect(()=>{
-        const getAccount = async() => {
-            const accountResult = await fetch("http://localhost:8080/account/getByUsernamePassword/"+username+"@"+password,{
-                method: 'GET',
-                headers: {"Content-Type":"application/json"}
-            })
+        const FetchAccountData = async ()=>{
+            try{
+                const results = await fetch("http://localhost:8080/account/getById/"+accountId,{
+                    method:'GET',
+                    headers:{"Content-Type":"application/json"}
+                });
+                if(!results.ok){
+                    throw new Error("Failed fetching profile data")
+                }
 
-            const data = await accountResult.json();
-            setAccoountId(data[0].id);
+                const data =  await results.json();
+                setUsername(data[0].username);
+                setChatroomName(data[0].username + "'s chatroom");
+                setPassword(data[0].password);
+            }catch(err){
+                console.error("There was an error in FetchAccountData",err);
+                return null;
+            } 
         }
 
-        getAccount();
+        FetchAccountData();
     },[])
 
     useEffect(()=>{

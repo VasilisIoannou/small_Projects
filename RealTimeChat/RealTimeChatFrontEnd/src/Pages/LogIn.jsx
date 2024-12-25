@@ -11,13 +11,11 @@ const LogIn = () => {
   const [loginUsername,setLoginUsername] = useState(""); 
   const [loginPassword,setLoginPassword] = useState("");  
 
-  const [accountId,setAccountID] = useState(-1);
-
   const navigate = useNavigate();
  
-  function moveToMenuPage(usernamePass,userPassword){
-    if (usernamePass.trim()) {
-        navigate('/menu', { state: { username : usernamePass, password:userPassword} }); 
+  function moveToMenuPage(accountId){
+    if (accountId > 0) {
+        navigate('/menu', { state: { accountNavId: accountId} }); 
     } else {
         alert("Please enter a username!");
     }
@@ -28,7 +26,7 @@ const LogIn = () => {
     const encodedPassword = encodeURIComponent(password);
     try{
       const responce = await fetch('http://localhost:8080/account/create/'+encodedUsername+'@'+encodedPassword,{//Check username Uniqueness
-        method: 'POST',
+        method: 'PUT',
         headers: {"Content-Type":"application/json"}
       })
 
@@ -36,19 +34,29 @@ const LogIn = () => {
         throw new Error(`Failed to create account`);
       }
 
-      const data = await responce.json();
-      return data;
+      const accountId = await responce.json();
+      return accountId;
     }catch(err){
       console.error("Failed to create card:", err);
     }
   }
 
-  const logInUser = async() =>{
-    const res = await fetch('http://localhost:8080/account/get/'+loginUsername+'@'+loginPassword);
+  const logInUser = async() =>{ //Fix
+    const encodedUsername = encodeURIComponent(loginUsername);
+    const encodedPassword = encodeURIComponent(loginPassword);
+    const res = await fetch('http://localhost:8080/account/getByUsernamePassword/'+encodedUsername+'@'+encodedPassword,{
+      method: 'GET',
+      headers: {"Content-Type":"application/json"}
+    });
     const data = await res.json();
+    console.log(data)
+
+    if(!res.ok){
+      throw new Error('Failed to Log In user')
+    }
 
     if(data.length > 0){
-      moveToMenuPage(loginUsername,loginPassword)
+      //moveToMenuPage(loginUsername,loginPassword)
     } else {
       console.log("Account Doesn't Exist")
     }
@@ -57,9 +65,7 @@ const LogIn = () => {
   const createUser = async () => {//Dont allow duplicate accounts
     try {
       const newId = await requestCreate();
-      setAccountID(newId); 
-
-      moveToMenuPage(username, password);
+      moveToMenuPage(newId);
     } catch (error) {
       console.error("Error creating user:", error);
     }

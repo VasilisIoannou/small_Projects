@@ -23,6 +23,15 @@ CREATE TABLE IF NOT EXISTS chatrooms_accounts (
     FOREIGN KEY (accountId) REFERENCES accounts(id) ON DELETE CASCADE
 );
 
+--Joint Table for friend list
+CREATE TABLE IF NOT EXISTS friends (
+    userId INT,
+    friendId INT,
+    PRIMARY KEY (userId, friendId),
+    FOREIGN KEY (userId) REFERENCES accounts(id) ON DELETE CASCADE,
+    FOREIGN KEY (friendId) REFERENCES accounts(id) ON DELETE CASCADE
+);
+
 --ChatMessageTable
 CREATE TABLE IF NOT EXISTS messages(
     id INT AUTO_INCREMENT PRIMARY KEY,

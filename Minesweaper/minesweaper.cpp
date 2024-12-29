@@ -1,11 +1,12 @@
 #include <iostream>
 #include <vector>
-#include<map>
+#include <map>
+#include <random>
 #include <windows.h>
 
 using namespace std;
 
-const int screenX = 30,screenY=10;
+const int screenX = 10,screenY=10;
 const char char_not_dig = '?';
 const char char_flag = 'F';
 const char char_clear = '-';
@@ -26,7 +27,7 @@ ACTION currentAction = DIG;
 
 class controller{
 private:
-    const int numberOfBombs = screenY;
+    const int numberOfBombs = 15;
     int flagsLeft;
 
     vector<char> field;
@@ -134,11 +135,30 @@ private:
     }
 
     void setBombs(){
-        //Calculate random numbers
-        bombs[0] = 10;
-        for(int i=1;i<screenY;i++){
-            bombs[i] = bombs[i-1] + screenX;
+        // Define range
+        int minRandge = 0;
+        int maxRange = screenX*screenY - 1;//99
+
+        // Initialize a random number generator
+        random_device rd;
+        mt19937 gen(rd());
+        uniform_int_distribution<> distrib(minRandge, maxRange);
+
+        for(int i=0;i<numberOfBombs;i++){
+             int newBomb = distrib(gen);
+
+             int j=0;
+             while(j<i){
+                if(bombs[j] == newBomb){
+                    newBomb = distrib(gen);
+                    j=0;
+                }
+                j++;
+             }
+             bombs[i] = newBomb;
         }
+
+
     }
 
 public:
@@ -189,28 +209,85 @@ public:
         return;
     }
 
-    void print(){
+    void print(CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+
         system("cls");
-        for(int i=0;i<screenX*screenY;i++){
-            if(field[i] == char_flag){
-                setTextColor("red");
-            } else if(field[i] == char_clear){
-                setTextColor("green");
-            }
-            if(currentPos == i){
-                setTextColor("purple");
-            }
-            cout<<field.at(i)<<' ';
-            if((i+1)%screenX == 0) cout<<endl;
 
-            setTextColor("normal");
+        //get Console Size
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        if (csbi.srWindow.Bottom != oldcsbi.srWindow.Bottom || csbi.srWindow.Right != oldcsbi.srWindow.Right)
+        {
+            oldcsbi = csbi;
+
+            short horizontalOffset = (short)(csbi.srWindow.Right / 2) -   screenX;
+            short verticalOffset = (short)((csbi.srWindow.Top + 2* screenY) / 2);
+
+            coord.X = horizontalOffset + 3;
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+
+            cout<<"Mine sweeper";
+
+            coord.X = horizontalOffset;
+            coord.Y+= 2;
+
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+
+            for(int i=0;i<screenX*screenY;i++){
+                if(field[i] == char_flag){
+                    setTextColor("red");
+                } else if(field[i] == char_clear){
+                    setTextColor("green");
+                } else if(field[i] == '?'){
+                    setTextColor("blue");
+                }
+                if(currentPos == i){
+                    setTextColor("purple");
+                }
+
+                cout<<field.at(i);
+                coord.X += 2;
+                if((i+1)%screenX == 0){
+                   coord.X = horizontalOffset;
+                   coord.Y += 1;
+                }
+                SetConsoleCursorPosition(hConsoleOutput,coord);
+                setTextColor("normal");
+            }
+            const int infoSize = 6;
+            string info[infoSize] = {"Current Action: ","Number of Flags: ","How to play: "," - Move with Arrow keys or WASD"," - press SPACE to toggle between DIG/FLAG"," - Press ENTER for action" };
+
+
+            coord.X = horizontalOffset ;
+            coord.Y = verticalOffset + 2;
+
+            for(int i=0;i<infoSize;i++){
+                coord.Y += 1;
+                SetConsoleCursorPosition(hConsoleOutput, coord);
+                setTextColor("normal");
+
+                if(i ==0 || i == 1){
+                    setTextColor("green");
+                }
+
+                cout<<info[i];
+
+                if(i == 0){
+                    setTextColor("red");
+                    if(currentAction == DIG) cout<<"DIG";
+                    else cout<<"FLAG";
+                }
+
+                if(i == 1){
+                    setTextColor("red");
+                    cout<<flagsLeft;
+                    setTextColor("normal");
+                    coord.Y ++;
+                }
+            }
         }
-        cout<<"Current Action ";
-        if(currentAction == DIG) cout<<"DIG"<<endl;
-        else cout<<"FLAG"<<endl;
-
-        cout<<endl<<"Number of Flags: "<<flagsLeft<<endl;
-        cout<<endl<<"Move with Arrow keys or WASD"<<endl<<"press SPACE to toggle between DIG/FLAG"<<endl<<"Press ENTER for action";
     }
 
     void win(){
@@ -259,9 +336,15 @@ int main(){
         std::cerr << "Error: Unable to retrieve console cursor info.\n";
     }
 
+    //get console Size
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi{};
+    COORD coord{};
+
+
     INPUT_RECORD inputRecord;
     DWORD eventsRead;
 
+    Ctrl.print(oldcsbi, coord);
     while (currentState == PLAY) {
         if (ReadConsoleInput(hStdin,&inputRecord, 1, &eventsRead)) {
             if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
@@ -270,7 +353,7 @@ int main(){
 
                 Ctrl.handleKeyInput(keyEvent);
                 Ctrl.win();
-                Ctrl.print();
+                Ctrl.print(oldcsbi, coord);
             }
         }
     }

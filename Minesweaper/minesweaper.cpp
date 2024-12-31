@@ -3,6 +3,8 @@
 #include <map>
 #include <random>
 #include <windows.h>
+#include <chrono>
+#include <thread>
 
 using namespace std;
 
@@ -10,6 +12,8 @@ const int screenX = 10,screenY=10;
 const char char_not_dig = '?';
 const char char_flag = 'F';
 const char char_clear = '-';
+
+const int gameDepth = 5;
 
 enum STATE{
     PLAY,
@@ -25,9 +29,52 @@ enum ACTION{
 STATE currentState = PLAY;
 ACTION currentAction = DIG;
 
+class timer{
+private:
+    chrono::time_point<chrono::steady_clock> startTime, endTime;
+    bool running;
+public:
+    timer(){
+        running = false;
+    }
+    void start(){
+        startTime = chrono::steady_clock::now();
+        running = true;
+        return;
+    }
+    void stop(){
+        running = false;
+        endTime = chrono::steady_clock::now();
+    }
+    bool getRunning(){
+        return running;
+    }
+    int CalculateTime() const{
+        if (!running){
+            auto duration = std::chrono::duration_cast<std::chrono::seconds>(endTime - startTime);
+            static_cast<int>(duration.count());
+        }
+        auto now = std::chrono::steady_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(now - startTime);
+        return static_cast<int>(duration.count());
+    }
+
+    void print(CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        coord.X = (short)(csbi.srWindow.Right / 2);
+        coord.Y = (short)((csbi.srWindow.Top ) / 2) +  2 * screenY;
+        SetConsoleCursorPosition(hConsoleOutput,coord);
+
+        cout<<"Timer: "<< CalculateTime()<<" s ";
+    }
+};
+
 class controller{
 private:
-    const int numberOfBombs = 15;
+    const int numberOfBombs = 1;
     int flagsLeft;
 
     vector<char> field;
@@ -55,7 +102,15 @@ private:
         SetConsoleTextAttribute(hConsole, colorID);
     }
 
-    void dig(int currentBlock){
+    void dig(int currentBlock,int depth){
+
+        if(depth <= 0){
+            return;
+        }
+
+        if(field[currentBlock] == char_flag){
+            return;
+        }
 
         if(currentBlock < 0 || currentBlock >= fieldSize ){
            return;
@@ -71,6 +126,8 @@ private:
             }
         }
 
+        depth --;
+
         field[currentBlock] = char_clear;
 
         //Calculate Number of bombs around the block
@@ -79,13 +136,19 @@ private:
            if(  bombs[i] == currentBlock - screenX   || bombs[i] ==  currentBlock + screenX ){
                 bombsAround++;
            }
-           if((currentBlock+1)%screenX != 0 &&( bombs[i] == currentBlock + 1 || bombs[i] ==  currentBlock - screenX + 1 || bombs[i] ==  currentBlock + screenX + 1)){//Edge cases
+
+           if((currentBlock+1)%screenX != 0 &&( bombs[i] == currentBlock + 1 || bombs[i] == currentBlock + 1 - screenX || bombs[i] == currentBlock + 1 + screenX )){//Edge cases
+               bombsAround++;
+           }
+
+           if(currentBlock%screenX != 0 && ( bombs[i] == currentBlock - 1 || bombs[i] == currentBlock - 1 - screenX || bombs[i] == currentBlock - 1 + screenX )){
                 bombsAround++;
            }
-           if(currentBlock%screenX != 0 && ( bombs[i] == currentBlock - 1 || bombs[i] ==  currentBlock - screenX - 1 || bombs[i] ==  currentBlock + screenX - 1)){
-                bombsAround++;
-           }
+
+
+
         }
+
         if(bombsAround > 0){
             char charBombsAround = (char)bombsAround + (char)'0';
             field[currentBlock] = charBombsAround;
@@ -93,18 +156,14 @@ private:
 
         dpBombs.at(currentBlock) = bombsAround;
 
-        dig(currentBlock - screenX);
-        dig(currentBlock + screenX);
+        dig(currentBlock - screenX,depth);
+        dig(currentBlock + screenX,depth);
 
         if((currentBlock+1)%screenX != 0){//Edge cases
-            dig(currentBlock - screenX + 1);
-            dig(currentBlock + 1);
-            dig(currentBlock + screenX + 1);
+            dig(currentBlock + 1,depth);
         }
         if(currentBlock%screenX != 0){
-            dig(currentBlock - 1);
-            dig(currentBlock - screenX - 1);
-            dig(currentBlock + screenX - 1);
+            dig(currentBlock - 1,depth);
         }
         return;
     }
@@ -115,10 +174,10 @@ private:
                 if(bombs[i] == currentPos){
                     //Lose Game
                     field[currentPos] = 'X';
-                    //currentState = LOST;
+                    currentState = LOST;
                     return;
                 }
-                dig(currentPos);
+                dig(currentPos,gameDepth);
             }
         } else {//FLAG
             if(field[currentPos] != char_flag && flagsLeft > 0){
@@ -202,7 +261,7 @@ public:
             return;
         }
         if(VirtualKey == VK_UP || c =='w'){
-            if(currentPos > screenX)
+            if(currentPos >= screenX)
                 currentPos-= screenX;
             return;
         }
@@ -223,9 +282,9 @@ public:
             oldcsbi = csbi;
 
             short horizontalOffset = (short)(csbi.srWindow.Right / 2) -   screenX;
-            short verticalOffset = (short)((csbi.srWindow.Top + 2* screenY) / 2);
+            short verticalOffset = (short)((csbi.srWindow.Top ) / 2) + screenY;
 
-            coord.X = horizontalOffset + 3;
+            coord.X = horizontalOffset + screenX;
             SetConsoleCursorPosition(hConsoleOutput, coord);
 
             cout<<"Mine sweeper";
@@ -248,7 +307,7 @@ public:
                 }
 
                 cout<<field.at(i);
-                coord.X += 2;
+                coord.X += 3;
                 if((i+1)%screenX == 0){
                    coord.X = horizontalOffset;
                    coord.Y += 1;
@@ -304,8 +363,36 @@ public:
 
 };
 
+void printEnd(bool win,int TimePlayed, CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+
+    system("cls");
+
+    //get Console Size
+    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+    coord.X = (short)(csbi.srWindow.Right / 2);
+    coord.Y = (short)(csbi.srWindow.Bottom / 2);
+
+    SetConsoleCursorPosition(hConsoleOutput,coord);
+
+    if(win){
+        cout<<"You Won :) ";
+    } else {
+        cout<<"YOu Lost :( " ;
+    }
+
+    coord.Y += 2;
+    SetConsoleCursorPosition(hConsoleOutput,coord);
+
+    cout<<"You played for "<<TimePlayed<<" seconds";
+
+}
+
 int main(){
     controller Ctrl;
+    timer Timer;
 
     HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
 
@@ -346,8 +433,14 @@ int main(){
 
     Ctrl.print(oldcsbi, coord);
     while (currentState == PLAY) {
-        if (ReadConsoleInput(hStdin,&inputRecord, 1, &eventsRead)) {
+        Timer.print(oldcsbi,coord);
+        if (PeekConsoleInput(hStdin,&inputRecord, 1, &eventsRead) && eventsRead > 0 )  {
+            ReadConsoleInput(hStdin, &inputRecord, 1, &eventsRead);
             if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
+
+                if(!Timer.getRunning()){
+                    Timer.start();
+                }
 
                 KEY_EVENT_RECORD keyEvent = inputRecord.Event.KeyEvent;
 
@@ -357,11 +450,14 @@ int main(){
             }
         }
     }
+    Timer.stop();
+    int TimePlayed = Timer.CalculateTime();
     if(currentState == LOST){
-        cout<<"YOU LOST :(";
+         printEnd(false,TimePlayed,oldcsbi,coord);
     } else {
-         cout<<"YOU WON :)";
+         printEnd(true,TimePlayed,oldcsbi,coord);
     }
+
     SetConsoleMode(hStdin,originalMode);
 
     return 0;

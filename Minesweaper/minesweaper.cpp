@@ -1,4 +1,5 @@
 #include <iostream>
+#include <strings.h>
 #include <vector>
 #include <map>
 #include <random>
@@ -16,9 +17,18 @@ const char char_clear = '-';
 const int gameDepth = 5;
 
 enum STATE{
+    MENU,
     PLAY,
     LOST,
-    WIN
+    WIN,
+    END
+};
+
+enum MENU_STATE{
+    MAIN,
+    MENU_PLAY,
+    STATISTICS,
+    NEW_GAME
 };
 
 enum ACTION{
@@ -26,8 +36,26 @@ enum ACTION{
     DIG
 };
 
-STATE currentState = PLAY;
+STATE currentState = MENU;
 ACTION currentAction = DIG;
+MENU_STATE currentMenuState = MAIN;
+
+void setTextColor(std::string color) {
+    int colorID;
+    if(color == "blue"){
+        colorID = 3;
+    } else if(color == "purple"){
+        colorID = 5;
+    }  else if(color == "red"){
+        colorID = 4;
+    } else if(color == "green"){
+        colorID = 2;
+    } else {
+    colorID = 7;
+    }
+    HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+    SetConsoleTextAttribute(hConsole, colorID);
+}
 
 class timer{
 private:
@@ -84,23 +112,6 @@ private:
     int currentPos;
 
     vector<int> dpBombs;
-
-    void setTextColor(std::string color) {
-        int colorID;
-        if(color == "blue"){
-            colorID = 3;
-        } else if(color == "purple"){
-            colorID = 5;
-        }  else if(color == "red"){
-            colorID = 4;
-        } else if(color == "green"){
-            colorID = 2;
-        } else {
-        colorID = 7;
-        }
-        HANDLE hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
-        SetConsoleTextAttribute(hConsole, colorID);
-    }
 
     void dig(int currentBlock,int depth){
 
@@ -220,18 +231,6 @@ private:
 
     }
 
-public:
-    controller(){
-        field.resize(screenX * screenY, char_not_dig);
-        bombs.reserve(numberOfBombs);
-        flagsLeft = numberOfBombs;
-        setBombs();
-
-        dpBombs.resize(screenX * screenY,-1);
-
-        currentPos = 0;
-    }
-
     void handleKeyInput(KEY_EVENT_RECORD event){
         WORD VirtualKey = event.wVirtualKeyCode;
         char c = event.uChar.AsciiChar;
@@ -267,6 +266,39 @@ public:
         }
         return;
     }
+
+    void win(){
+        if(flagsLeft > 0){
+            return ;
+        }
+        for(int i=0;i<numberOfBombs;i++){
+            if(field[bombs[i]] != char_flag){
+                return ;
+            }
+        }
+        currentState = WIN;
+    }
+
+public:
+    controller(){
+        field.resize(screenX * screenY, char_not_dig);
+        bombs.reserve(numberOfBombs);
+        flagsLeft = numberOfBombs;
+        setBombs();
+
+        dpBombs.resize(screenX * screenY,-1);
+
+        currentPos = 0;
+    }
+
+
+    void mainControl(KEY_EVENT_RECORD event,CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+        handleKeyInput(event);
+        win();
+        print(oldcsbi, coord);
+    }
+
+
 
     void print(CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
 
@@ -349,19 +381,356 @@ public:
         }
     }
 
-    void win(){
-        if(flagsLeft > 0){
-            return ;
+};
+
+class playMenu;
+
+class newGameMenu{
+private:
+    int currentPosition;
+    const int numberOfDifficultyOptions = 3;
+    string DifficultyOptions[3] = {"Easy","Medium","Hard"};
+
+    string fileName;
+
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
+    COORD coord;
+
+    void action(){
+        if(currentPosition == 0){ //Easy
+
+            return;
+        } else if(currentPosition == 1){ // Medium
+
+            return;
+        } else if (currentPosition == 2){ // Hard
+            return;
         }
-        for(int i=0;i<numberOfBombs;i++){
-            if(field[bombs[i]] != char_flag){
-                return ;
-            }
-        }
-        currentState = WIN;
     }
 
+    void handleKeyInput(KEY_EVENT_RECORD event){
+        WORD VirtualKey = event.wVirtualKeyCode;
+        char c = event.uChar.AsciiChar;
+        fileName+=c;
+
+        if(VirtualKey == VK_RETURN){
+            action();
+            return;
+        }
+        if(VirtualKey == VK_RIGHT){
+            if(currentPosition < numberOfDifficultyOptions - 1){
+                currentPosition ++ ;
+            }
+            return;
+        }
+        if(VirtualKey == VK_LEFT ){
+            if(currentPosition > 0)
+                currentPosition-- ;
+        }
+        if(VirtualKey == VK_DOWN ){
+            if(currentPosition < numberOfDifficultyOptions)
+                currentPosition = numberOfDifficultyOptions ;
+            else
+                currentPosition = numberOfDifficultyOptions + 1 ;
+        }
+        if(VirtualKey == VK_UP ){
+            if(currentPosition <= numberOfDifficultyOptions)
+                currentPosition = 0 ;
+            else
+                currentPosition = numberOfDifficultyOptions;
+        }
+    }
+public:
+    newGameMenu(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+        currentPosition = 0;
+        setOldcsbi = setOldcsbi;
+        coord = setCoord;
+    }
+
+    void mainControl(KEY_EVENT_RECORD event,CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+        handleKeyInput(event);
+        if(currentMenuState == NEW_GAME){
+            print();
+        }
+    }
+
+    void print(){
+
+        system("cls");
+
+        //get Console Size
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        oldcsbi = csbi;
+
+        const int Xoffset = 10;
+
+        coord.X = (short)(csbi.srWindow.Right / 2) - Xoffset;
+        coord.Y = (short)((csbi.srWindow.Bottom) / 3);
+
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Mine sweeper";
+
+        coord.Y+= 4;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"File Name: ";
+        cout<<fileName;
+
+        coord.Y += 2;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        string Diff = "Difficulty:";
+        cout<<Diff;
+
+        coord.X += Diff.length() + 2;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        int DiffixultyOffsetX = Diff.length() + 2;
+        for(int i=0;i<numberOfDifficultyOptions;i++){
+            if(currentPosition == i){
+                setTextColor("red");
+            }
+            cout<<DifficultyOptions[i];
+
+            int wordSize = DifficultyOptions[i].length() + 2;
+            coord.X+= wordSize;
+            DiffixultyOffsetX += wordSize;
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+            setTextColor("normal");
+        }
+
+        coord.X -= DiffixultyOffsetX;
+        coord.Y += 4;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+        if(currentPosition == numberOfDifficultyOptions){
+            setTextColor("red");
+        }
+        cout<<"Save";
+
+        coord.Y+= 2;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+        setTextColor("normal");
+
+        if(currentPosition == numberOfDifficultyOptions + 1){
+            setTextColor("red");
+        }
+        cout<<"Back";
+        setTextColor("normal");
+    }
 };
+
+class mainMenu{
+private:
+    int currentPosition;
+
+    playMenu* playMenuPointer;
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
+    COORD coord;
+
+    const int numberOfOptions = 3;
+    string Options[3] = {"Play","Statistics","Exit"};
+
+
+    void action();
+
+    void handleKeyInput(KEY_EVENT_RECORD event);
+
+public:
+    mainMenu(playMenu* setPlayMenu,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord);
+
+    void mainControl(KEY_EVENT_RECORD event);
+
+    void print();
+};
+
+class playMenu{
+private:
+    int currentPosition;
+    const int numberOfPlayOptions = 3;
+    string PlayOptions[3] = {"New Game","Load Game","Back"};
+
+    mainMenu* mainMenuPointer;
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
+    COORD coord;
+
+    void action(){
+        if(currentPosition == 0){ //New
+            currentMenuState = NEW_GAME;
+            return;
+        } else if(currentPosition == 1){ // Load
+
+            return;
+        } else if (currentPosition == 2){ // Back
+            currentMenuState = MAIN;
+            mainMenuPointer -> print();
+            return;
+        }
+    }
+
+    void handleKeyInput(KEY_EVENT_RECORD event){
+        WORD VirtualKey = event.wVirtualKeyCode;
+        char c = event.uChar.AsciiChar;
+
+        if(VirtualKey == VK_RETURN){
+            action();
+            return;
+        }
+        if(VirtualKey == VK_DOWN || c =='s'){
+            if(currentPosition < numberOfPlayOptions - 1){
+                currentPosition ++ ;
+            }
+            return;
+        }
+        if(VirtualKey == VK_UP || c =='w'){
+            if(currentPosition > 0)
+                currentPosition-- ;
+        }
+    }
+public:
+    playMenu(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+        currentPosition = 0;
+        setOldcsbi = setOldcsbi;
+        coord = setCoord;
+    }
+
+    void setMainMenuPointer(mainMenu* setMainMenuPointerVariable){
+        mainMenuPointer = setMainMenuPointerVariable;
+    }
+
+    void mainControl(KEY_EVENT_RECORD event,CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
+        handleKeyInput(event);
+        if(currentMenuState == MENU_PLAY){
+            print();
+        }
+    }
+
+    void print(){
+
+        system("cls");
+
+        //get Console Size
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        oldcsbi = csbi;
+
+        const int Xoffset = 10;
+
+        coord.X = (short)(csbi.srWindow.Right / 2) - Xoffset;
+        coord.Y = (short)((csbi.srWindow.Bottom) / 3);
+
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Mine sweeper";
+
+        coord.Y+= 4;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        for(int i=0;i<numberOfPlayOptions;i++){
+            if(currentPosition == i){
+                setTextColor("red");
+            }
+            cout<<PlayOptions[i];
+
+            coord.Y+= 2;
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+            setTextColor("normal");
+        }
+    }
+};
+
+void mainMenu::action(){
+    if(currentPosition == 0){//Play
+        currentMenuState = MENU_PLAY;
+        playMenuPointer -> print();
+        return;
+    } else if(currentPosition == 1){ // Statistic
+        currentMenuState = STATISTICS;
+        return;
+    } else if (currentPosition == 2){ // Exit
+        currentState = END;
+    }
+}
+void mainMenu::handleKeyInput(KEY_EVENT_RECORD event){
+    WORD VirtualKey = event.wVirtualKeyCode;
+    char c = event.uChar.AsciiChar;
+
+    if(VirtualKey == VK_RETURN){
+        action();
+        return;
+    }
+    if(VirtualKey == VK_DOWN | c =='s'){
+          if(currentPosition < numberOfOptions - 1)
+            currentPosition ++ ;
+        return;
+    }
+    if(VirtualKey == VK_UP || c =='w'){
+        if(currentPosition > 0)
+            currentPosition-- ;
+        return;
+    }
+    return;
+}
+
+mainMenu::mainMenu(playMenu* setPlayMenu,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+    currentPosition = 0;
+    currentMenuState = MAIN;
+    playMenuPointer = setPlayMenu;
+
+    oldcsbi = setOldcsbi;
+    coord = setCoord;
+}
+
+void mainMenu::mainControl(KEY_EVENT_RECORD event){
+    handleKeyInput(event);
+    if(currentMenuState == MAIN){
+        print();
+    }
+}
+
+void mainMenu::print(){
+
+    system("cls");
+
+    //get Console Size
+    HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    CONSOLE_SCREEN_BUFFER_INFO csbi;
+    GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+    oldcsbi = csbi;
+
+    const int Xoffset = 10;
+
+    coord.X = (short)(csbi.srWindow.Right / 2) - Xoffset;
+    coord.Y = (short)((csbi.srWindow.Bottom) / 3);
+
+    SetConsoleCursorPosition(hConsoleOutput, coord);
+
+    cout<<"Mine sweeper";
+
+    coord.Y+= 4;
+    SetConsoleCursorPosition(hConsoleOutput, coord);
+
+    for(int i=0;i<numberOfOptions;i++){
+        if(currentPosition == i){
+            setTextColor("red");
+        }
+
+        cout<<Options[i];
+
+        coord.Y+= 2;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+        setTextColor("normal");
+    }
+}
+
+
+
 
 void printEnd(bool win,int TimePlayed, CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
 
@@ -427,26 +796,44 @@ int main(){
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi{};
     COORD coord{};
 
+    playMenu PlayMenu(oldcsbi,coord);
+    mainMenu MainMenu(&PlayMenu,oldcsbi,coord);
+    newGameMenu NewGameMenu(oldcsbi,coord);
+
+    PlayMenu.setMainMenuPointer(&MainMenu);
 
     INPUT_RECORD inputRecord;
     DWORD eventsRead;
 
-    Ctrl.print(oldcsbi, coord);
-    while (currentState == PLAY) {
-        Timer.print(oldcsbi,coord);
+    MainMenu.print();
+    while (currentState == PLAY || currentState == MENU) {
+        if(currentState == PLAY){
+            Timer.print(oldcsbi,coord);
+        }
         if (PeekConsoleInput(hStdin,&inputRecord, 1, &eventsRead) && eventsRead > 0 )  {
             ReadConsoleInput(hStdin, &inputRecord, 1, &eventsRead);
             if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
 
-                if(!Timer.getRunning()){
-                    Timer.start();
-                }
-
                 KEY_EVENT_RECORD keyEvent = inputRecord.Event.KeyEvent;
 
-                Ctrl.handleKeyInput(keyEvent);
-                Ctrl.win();
-                Ctrl.print(oldcsbi, coord);
+                if(currentState == MENU){
+                    if(currentMenuState == MAIN){
+                        MainMenu.mainControl(keyEvent);
+                    } else if(currentMenuState == MENU_PLAY){
+                        PlayMenu.mainControl(keyEvent,oldcsbi,coord);
+                    } else if(currentMenuState == NEW_GAME){
+                        NewGameMenu.mainControl(keyEvent,oldcsbi,coord);
+                    }
+
+
+                } else if(currentState == PLAY){
+                    if(!Timer.getRunning()){
+                        Timer.start();
+                    }
+
+                    Ctrl.mainControl(keyEvent,oldcsbi,coord);
+                }
+
             }
         }
     }
@@ -454,7 +841,7 @@ int main(){
     int TimePlayed = Timer.CalculateTime();
     if(currentState == LOST){
          printEnd(false,TimePlayed,oldcsbi,coord);
-    } else {
+    } else if(currentAction == WIN){
          printEnd(true,TimePlayed,oldcsbi,coord);
     }
 

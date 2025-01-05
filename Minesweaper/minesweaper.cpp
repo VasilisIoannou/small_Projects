@@ -6,6 +6,7 @@
 #include <windows.h>
 #include <chrono>
 #include <thread>
+#include <fstream>
 
 using namespace std;
 
@@ -18,12 +19,15 @@ const int gameDepth = 5;
 
 const int EasyScreenX = 10;
 const int EasyScreenY = 10;
+const int EasyBombs = 15;
 
 const int MediumScreenX = 20;
 const int MediumScreenY = 20;
+const int MediumBombs = 35;
 
 const int HardScreenX = 30;
 const int HardScreenY = 30;
+const int HardBombs = 50;
 
 enum STATE{
     MENU,
@@ -36,6 +40,7 @@ enum STATE{
 enum MENU_STATE{
     MAIN,
     MENU_PLAY,
+    LOAD,
     STATISTICS,
     NEW_GAME
 };
@@ -48,6 +53,7 @@ enum ACTION{
 STATE currentState = MENU;
 ACTION currentAction = DIG;
 MENU_STATE currentMenuState = MAIN;
+int currentFile;
 
 void setTextColor(std::string color) {
     int colorID;
@@ -121,8 +127,10 @@ public:
 
 class controller{
 private:
-    const int numberOfBombs = 1;
+    int numberOfBombs;
     int flagsLeft;
+
+    int difficulty;
 
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
@@ -231,7 +239,7 @@ private:
     void setBombs(){
         // Define range
         int minRandge = 0;
-        int maxRange = screenX*screenY - 1;//99
+        int maxRange = screenX*screenY - 1;
 
         // Initialize a random number generator
         random_device rd;
@@ -253,6 +261,39 @@ private:
         }
 
 
+    }
+
+    void saveFile(){
+        char charFileNumber = '0' + currentFile + 1;
+        string fileName = "SaveFile_";
+        fileName += charFileNumber;
+        fileName += ".dat";
+        ofstream fileToSave(fileName) ;
+
+        //First Line Difficulty
+        //Second Line Field
+        //Third Line the Bomb Positions with space in between each number
+        //Forth Line Flags Left
+        //Fifth dpBombs
+
+        fileToSave << difficulty << '\n';
+        for(int i=0;i<fieldSize;i++){
+            fileToSave << field.at(i);
+        }
+        fileToSave<<'\n';
+        for(int i=0;i<numberOfBombs;i++){
+            fileToSave << bombs[i] <<' ';
+        }
+        fileToSave <<'\n';
+
+        fileToSave << flagsLeft;
+        fileToSave <<'\n';
+
+        for(int i=0;i<fieldSize;i++){
+            fileToSave << dpBombs.at(i);
+        }
+
+        return;
     }
 
     void handleKeyInput(KEY_EVENT_RECORD event){
@@ -288,6 +329,11 @@ private:
                 currentPos-= screenX;
             return;
         }
+        if(VirtualKey == VK_ESCAPE){
+            saveFile();
+            currentState = END;
+            return;
+        }
         return;
     }
 
@@ -303,10 +349,11 @@ private:
         currentState = WIN;
     }
 
-    void initialise(int setScreenX,int setScreenY){
+    void initialise(int setScreenX,int setScreenY,int bombNumber){
 
         screenX = setScreenX;
         screenY = setScreenY;
+        numberOfBombs = bombNumber;
 
         fieldSize = screenX*screenY;
         field.resize(screenX * screenY, char_not_dig);
@@ -320,36 +367,99 @@ private:
 
         print();
     }
+
+    void initialiseCreate(){
+        switch (difficulty){
+         case 1:
+            screenX = EasyScreenX;
+            screenY = EasyScreenY;
+            numberOfBombs = EasyBombs;
+            break;
+         case 2:
+            screenX = MediumScreenX;
+            screenY = MediumScreenY;
+            numberOfBombs = MediumBombs;
+            break;
+         case 3:
+            screenX = HardScreenX;
+            screenY = HardScreenY;
+            numberOfBombs = HardBombs;
+            break;
+        }
+
+        fieldSize = screenX*screenY;
+        field.resize(screenX * screenY);
+        bombs.resize(numberOfBombs);
+        dpBombs.resize(screenX * screenY);
+
+    }
 public:
     controller(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi,COORD setCoord){
         oldcsbi = setOldcsbi;
         coord = setCoord;
     }
-    void create(int difficulty){
-        if (difficulty == 0){
-            initialise(EasyScreenX,EasyScreenY);
-            return;
-        }
-        if (difficulty == 1){
-            initialise(MediumScreenX,MediumScreenY);
-            return;
-        }
-        if (difficulty == 2){
-            initialise(HardScreenX,HardScreenY);
-            return;
+
+    void create(int diff){
+        difficulty = diff;
+        switch(difficulty){
+         case 0:
+            initialise(EasyScreenX,EasyScreenY,EasyBombs);
+            break;
+         case 1:
+            initialise(MediumScreenX,MediumScreenY,MediumBombs);
+            break;
+         case 2:
+            initialise(HardScreenX,HardScreenY,HardBombs);
+            break;
         }
     }
 
+    void loadFile(){
+        char charFileNumber = '0' + currentFile + 1;
+        string fileName = "SaveFile_";
+        fileName += charFileNumber;
+        fileName += ".dat";
+        ifstream fileToRead(fileName) ;
 
+        if (fileToRead.fail()) {
+            cerr << "unable to open file for reading" << endl;
+            exit(2);
+        }
 
+        char c;
+        int lineNumber = 0;
+        while(fileToRead.get(c)){
+            if(lineNumber == 0){
+                int c_int = (int)c - (int)'0';
+                difficulty = c;
+                initialiseCreate();
+            }
+            else if(lineNumber == 1){
+                field.at(1) = c;
+            }
+            else if(lineNumber == 2){
+                //Save Bombs;
+            }
+            else if(lineNumber == 3){
+                flagsLeft = (int)c - (int)'0';
+            }
+            else if(lineNumber == 4){
+                //Save dpBombs
+            }
+
+            if(c == '\n'){
+                lineNumber++;
+            }
+        }
+
+        //go to Game
+    }
 
     void mainControl(KEY_EVENT_RECORD event){
         handleKeyInput(event);
         win();
         print();
     }
-
-
 
     void print(){
 
@@ -432,6 +542,10 @@ public:
                 SetConsoleCursorPosition(hConsoleOutput, coord);
             }
         }
+        coord.Y += 3;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Press ESC to save and exit";
     }
 
 };
@@ -473,6 +587,7 @@ private:
 
     mainMenu* mainMenuPointer;
     controller* CtrlPointer;
+    playMenu* playMenuPointer;
     timer* TimerPointer;
 
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
@@ -495,6 +610,7 @@ private:
 
                 currentState = PLAY;
             }
+            currentFile = chosenFile;
             return;
         }
         if(currentPositionY == 3){
@@ -555,6 +671,7 @@ public:
             print();
         }
     }
+
 
     void print(){
 
@@ -647,6 +764,128 @@ public:
     }
 };
 
+class loadGameMenu{
+private:
+    int currentPosition;
+    const int numberOfOptions = 3;
+    string options[3] = {"File 1" , "File 2", "File 3"};
+
+    controller* CtrlPointer;
+    mainMenu* mainMenuPointer;
+
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
+    COORD coord;
+
+    void loadFile(int fileNumber){
+        currentFile = fileNumber;
+        CtrlPointer -> loadFile();
+        return;
+    }
+
+    void action(){
+        if(currentPosition >= 0 && currentPosition < numberOfOptions ){
+            loadFile(currentPosition);
+            return;
+        }
+        if(currentPosition == numberOfOptions){
+            currentMenuState = MAIN;
+            mainMenuPointer -> print();
+            return;
+        }
+    }
+
+    void handleKeyInput(KEY_EVENT_RECORD event){
+        WORD VirtualKey = event.wVirtualKeyCode;
+        char c = event.uChar.AsciiChar;
+
+        if(VirtualKey == VK_RETURN){
+            action();
+            return;
+        }
+        if(VirtualKey == VK_DOWN | c =='s'){
+              if(currentPosition < numberOfOptions)
+                currentPosition ++ ;
+            return;
+        }
+        if(VirtualKey == VK_UP || c =='w'){
+            if(currentPosition > 0)
+                currentPosition-- ;
+            return;
+        }
+        return;
+    }
+public:
+    loadGameMenu(controller* setCtrlPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+        currentPosition = 0;
+
+        oldcsbi = setOldcsbi;
+        coord = setCoord;
+
+        CtrlPointer = setCtrlPointer;
+
+        return;
+    }
+
+    void mainControl(KEY_EVENT_RECORD event){
+        handleKeyInput(event);
+        if(currentMenuState == LOAD && currentState != PLAY && currentMenuState != MAIN){
+            print();
+        }
+    }
+
+    void setMainMenuPointer(mainMenu* setPointer){
+        mainMenuPointer = setPointer;
+    }
+
+    print(){
+        system("cls");
+
+        //get Console Size
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        oldcsbi = csbi;
+
+        const int Xoffset = 10;
+
+        coord.X = (short)(csbi.srWindow.Right / 2) - Xoffset;
+        coord.Y = (short)((csbi.srWindow.Bottom) / 3);
+
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Mine sweeper";
+
+        coord.Y+= 4;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Choose File:";
+
+        coord.Y+= 2;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        for(int i=0;i<numberOfOptions;i++){
+            if(currentPosition == i){
+                setTextColor("red");
+            }
+
+            cout<<options[i];
+
+            setTextColor("normal");
+
+            coord.Y+= 2;
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+        }
+
+        if(currentPosition == numberOfOptions ){
+            setTextColor("red");
+        }
+        cout<<"Back";
+        setTextColor("normal");
+
+    }
+};
+
 class playMenu{
 private:
     int currentPosition;
@@ -654,14 +893,20 @@ private:
     string PlayOptions[3] = {"New Game","Load Game","Back to Main Menu"};
 
     mainMenu* mainMenuPointer;
+    newGameMenu* newGameMenuPointer;
+    loadGameMenu* loadGameMenuPointer;
+
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
 
     void action(){
         if(currentPosition == 0){ //New
             currentMenuState = NEW_GAME;
+            newGameMenuPointer -> print();
             return;
         } else if(currentPosition == 1){ // Load
+            currentMenuState = LOAD;
+            loadGameMenuPointer -> print();
 
             return;
         } else if (currentPosition == 2){ // Back
@@ -691,19 +936,25 @@ private:
         }
     }
 public:
-    playMenu(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+    playMenu(loadGameMenu* setLoadGameMenuPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
         currentPosition = 0;
         setOldcsbi = setOldcsbi;
         coord = setCoord;
+
+        loadGameMenuPointer = setLoadGameMenuPointer;
     }
 
-    void setMainMenuPointer(mainMenu* setMainMenuPointerVariable){
-        mainMenuPointer = setMainMenuPointerVariable;
+    void setNewGameMenuPointer(newGameMenu* setPointer){
+        newGameMenuPointer = setPointer;
+    }
+
+    void setMainMenuPointer(mainMenu* setPointer){
+        mainMenuPointer = setPointer;
     }
 
     void mainControl(KEY_EVENT_RECORD event){
         handleKeyInput(event);
-        if(currentMenuState == MENU_PLAY){
+        if(currentMenuState == MENU_PLAY && currentMenuState != LOAD){
             print();
         }
     }
@@ -756,6 +1007,7 @@ void mainMenu::action(){
         currentState = END;
     }
 }
+
 void mainMenu::handleKeyInput(KEY_EVENT_RECORD event){
     WORD VirtualKey = event.wVirtualKeyCode;
     char c = event.uChar.AsciiChar;
@@ -830,8 +1082,6 @@ void mainMenu::print(){
 }
 
 
-
-
 void printEnd(bool win,int TimePlayed, CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD coord){
 
     system("cls");
@@ -896,10 +1146,14 @@ int main(){
     controller Ctrl(oldcsbi,coord);
     timer Timer(oldcsbi,coord);
 
-    playMenu PlayMenu(oldcsbi,coord);
+    loadGameMenu LoadGameMenu(&Ctrl,oldcsbi,coord);
+    playMenu PlayMenu(&LoadGameMenu,oldcsbi,coord);
     mainMenu MainMenu(&PlayMenu,oldcsbi,coord);
     newGameMenu NewGameMenu(&MainMenu,&Ctrl,&Timer,oldcsbi,coord);
 
+    LoadGameMenu.setMainMenuPointer(&MainMenu);
+
+    PlayMenu.setNewGameMenuPointer(&NewGameMenu);
     PlayMenu.setMainMenuPointer(&MainMenu);
 
     INPUT_RECORD inputRecord;
@@ -921,6 +1175,8 @@ int main(){
                         MainMenu.mainControl(keyEvent);
                     } else if(currentMenuState == MENU_PLAY){
                         PlayMenu.mainControl(keyEvent);
+                    } else if(currentMenuState == LOAD){
+                        LoadGameMenu.mainControl(keyEvent);
                     } else if(currentMenuState == NEW_GAME){
                         NewGameMenu.mainControl(keyEvent);
                     }
@@ -941,7 +1197,7 @@ int main(){
     int TimePlayed = Timer.CalculateTime();
     if(currentState == LOST){
          printEnd(false,TimePlayed,oldcsbi,coord);
-    } else if(currentAction == WIN){
+    } else if(currentState == WIN){
          printEnd(true,TimePlayed,oldcsbi,coord);
     }
 

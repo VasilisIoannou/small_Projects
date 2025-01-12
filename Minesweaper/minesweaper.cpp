@@ -479,35 +479,51 @@ public:
         return difficulty;
     }
 
-    void loadFile(){
+    void deleteFile(){
+        char charFileNumber = '0' + currentFile + 1;
+        string fileName = "SaveFile_";
+        fileName += charFileNumber;
+        fileName += ".dat";
+
+        ofstream fileToDelete(fileName);
+
+        fileToDelete<<'*';
+
+        fileToDelete.close();
+
+    }
+
+    bool loadFile(){
         char charFileNumber = '0' + currentFile + 1;
         string fileName = "SaveFile_";
         fileName += charFileNumber;
         fileName += ".dat";
         ifstream fileToRead(fileName) ;
 
-        ofstream temp("temp.txt");
+        char c;
+        fileToRead.get(c);
+        if (c == '*'){
+            return false;
+        }
 
-        if (fileToRead.fail()) {
-            cerr << "unable to open file for reading" << endl;
-            exit(2);
+        if(fileToRead.peek() == ifstream::traits_type::eof()){
+            return false;
         }
 
         string line;
         int lineNumber = 0;
         int currentBomb = 0 , currentDpBomb = 0;
+
         while(getline(fileToRead,line)){
             if(lineNumber == 0){
-                int c_int = (int)line[0] - (int)'0';
+                int c_int = (int)c - (int)'0';
                 difficulty = c_int;
                 initialiseCreate();
-                temp << c_int;
             }
             else if(lineNumber == 1){
                 for(int i=0;i<line.size();i++){
                     if(i < fieldSize){
                         field.at(i) = line[i];
-                        temp<<field.at(i);
                     }
                 }
             }
@@ -519,7 +535,6 @@ public:
                     }
                     if(line[i] == '#'){
                         bombs[currentBomb] = stringToInt(NumStr);
-                        temp<<bombs[currentBomb]<<'#';
                         currentBomb++;
                         NumStr = "";
                     }
@@ -527,7 +542,6 @@ public:
             }
             else if(lineNumber == 3){
                 flagsLeft = stringToInt(line);
-                temp<<flagsLeft;
             }
             else if(lineNumber == 4){
                 string NumDpStr = "";
@@ -541,7 +555,6 @@ public:
                     }
                     if(line[i] == '#'){
                         dpBombs[currentDpBomb] = stringToInt(NumDpStr,negative);
-                        temp<<dpBombs[currentDpBomb] <<'#';
 
                         currentDpBomb++;
                         NumDpStr = "";
@@ -550,11 +563,10 @@ public:
                 }
             }
             lineNumber++;
-            temp<<'\n';
         }
 
-        temp.close();
         fileToRead.close();
+        return true;
     }
 
     void mainControl(KEY_EVENT_RECORD event){
@@ -885,7 +897,9 @@ private:
 
     void loadFile(int fileNumber){
         currentFile = fileNumber;
-        CtrlPointer -> loadFile();
+        if(! CtrlPointer -> loadFile()){
+            return;
+        }
         timerPointer -> loadTime();
         timerPointer -> start();
         currentState = PLAY;
@@ -1470,7 +1484,7 @@ int main(){
                 int TimePlayed = Timer.CalculateTime();
                 if(currentState == LOST){
                     printEnd(false,TimePlayed,oldcsbi,coord);
-                    //Ctrl -> deleteSave();
+                    Ctrl.deleteFile();
                 } else if(currentState == WIN){
                     StatisticsMenu.CompareTime(TimePlayed,Ctrl.getDifficulty());
                     printEnd(true,TimePlayed,oldcsbi,coord);

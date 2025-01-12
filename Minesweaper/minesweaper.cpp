@@ -7,6 +7,8 @@
 #include <chrono>
 #include <thread>
 #include <fstream>
+#include <limits.h>
+#include <cmath>
 
 using namespace std;
 
@@ -15,19 +17,20 @@ const char char_not_dig = '?';
 const char char_flag = 'F';
 const char char_clear = '-';
 
-const int gameDepth = 5;
-
 const int EasyScreenX = 10;
 const int EasyScreenY = 10;
-const int EasyBombs = 15;
+const int EasyBombs = 20;
+const int EasyDepth = 5;
 
 const int MediumScreenX = 20;
 const int MediumScreenY = 20;
-const int MediumBombs = 35;
+const int MediumBombs = 60;
+const int MediumDepth = 7;
 
 const int HardScreenX = 30;
 const int HardScreenY = 30;
-const int HardBombs = 50;
+const int HardBombs = 120;
+const int HardDepth = 10;
 
 enum STATE{
     MENU,
@@ -72,10 +75,35 @@ void setTextColor(std::string color) {
     SetConsoleTextAttribute(hConsole, colorID);
 }
 
+int stringToInt(string text, bool negative = false) {
+    int number = 0;
+    int multiplier = 1;
+
+    if(text.size() == 1){
+        number = text[0] - '0';
+        return negative ? -number : number;
+    }
+
+    // Iterate from the end of the string
+    for (int i = text.size() - 1; i >= 0; --i) {
+        if (text[i] >= '0' && text[i] <= '9') {
+            int charInt = text[i] - '0';
+            number += charInt * multiplier;
+            multiplier *= 10;
+        }
+    }
+
+    return negative ? -number : number;
+}
+
 class timer{
 private:
     chrono::time_point<chrono::steady_clock> startTime, endTime;
     bool running;
+
+    int prevTime;
+
+    string timeFileName = "timer.dat";
 
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
@@ -89,6 +117,24 @@ public:
         running = false;
         oldcsbi = setOldcsbi;
         coord = setCoord;
+    }
+
+    void saveTime(){
+        ofstream saveFile(timeFileName);
+
+        saveFile<<prevTime + CalculateTime();
+
+        saveFile.close();
+    }
+
+    void loadTime(){
+        ifstream readFile(timeFileName);
+
+        string line;
+        getline(readFile,line);
+        prevTime = stringToInt(line);
+
+        readFile.close();
     }
 
     void start(){
@@ -121,7 +167,7 @@ public:
         setCoord();
         SetConsoleCursorPosition(hConsoleOutput,coord);
 
-        cout<<"Timer: "<< CalculateTime()<<" s ";
+        cout<<"Timer: "<< CalculateTime() + prevTime<<" s ";
     }
 };
 
@@ -130,7 +176,11 @@ private:
     int numberOfBombs;
     int flagsLeft;
 
+    int depth;
+
     int difficulty;
+
+    timer* timerPointer;
 
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
@@ -145,9 +195,9 @@ private:
 
     vector<int> dpBombs;
 
-    void dig(int currentBlock,int depth){
+    void dig(int currentBlock,int currentDepth){
 
-        if(depth <= 0){
+        if(currentDepth <= 0){
             return;
         }
 
@@ -169,7 +219,7 @@ private:
             }
         }
 
-        depth --;
+        currentDepth --;
 
         field[currentBlock] = char_clear;
 
@@ -199,14 +249,14 @@ private:
 
         dpBombs.at(currentBlock) = bombsAround;
 
-        dig(currentBlock - screenX,depth);
-        dig(currentBlock + screenX,depth);
+        dig(currentBlock - screenX,currentDepth);
+        dig(currentBlock + screenX,currentDepth);
 
         if((currentBlock+1)%screenX != 0){//Edge cases
-            dig(currentBlock + 1,depth);
+            dig(currentBlock + 1,currentDepth);
         }
         if(currentBlock%screenX != 0){
-            dig(currentBlock - 1,depth);
+            dig(currentBlock - 1,currentDepth);
         }
         return;
     }
@@ -220,7 +270,7 @@ private:
                     currentState = LOST;
                     return;
                 }
-                dig(currentPos,gameDepth);
+                dig(currentPos,depth);
             }
         } else {//FLAG
             if(field[currentPos] != char_flag && flagsLeft > 0){
@@ -243,7 +293,7 @@ private:
 
         // Initialize a random number generator
         random_device rd;
-        mt19937 gen(rd());
+        mt19937 gen(static_cast<unsigned int>(time(nullptr)));
         uniform_int_distribution<> distrib(minRandge, maxRange);
 
         for(int i=0;i<numberOfBombs;i++){
@@ -264,6 +314,9 @@ private:
     }
 
     void saveFile(){
+
+        timerPointer -> saveTime();
+
         char charFileNumber = '0' + currentFile + 1;
         string fileName = "SaveFile_";
         fileName += charFileNumber;
@@ -272,7 +325,7 @@ private:
 
         //First Line Difficulty
         //Second Line Field
-        //Third Line the Bomb Positions with space in between each number
+        //Third Line the Bomb Positions with # in between each number
         //Forth Line Flags Left
         //Fifth dpBombs
 
@@ -282,7 +335,7 @@ private:
         }
         fileToSave<<'\n';
         for(int i=0;i<numberOfBombs;i++){
-            fileToSave << bombs[i] <<' ';
+            fileToSave << bombs[i] <<'#';
         }
         fileToSave <<'\n';
 
@@ -290,7 +343,7 @@ private:
         fileToSave <<'\n';
 
         for(int i=0;i<fieldSize;i++){
-            fileToSave << dpBombs.at(i);
+            fileToSave << dpBombs.at(i) << '#';
         }
 
         return;
@@ -331,7 +384,8 @@ private:
         }
         if(VirtualKey == VK_ESCAPE){
             saveFile();
-            currentState = END;
+            currentState = MENU;
+            currentMenuState = MAIN;
             return;
         }
         return;
@@ -349,11 +403,13 @@ private:
         currentState = WIN;
     }
 
-    void initialise(int setScreenX,int setScreenY,int bombNumber){
+    void initialise(int setScreenX,int setScreenY,int bombNumber, int setDepth){
 
         screenX = setScreenX;
         screenY = setScreenY;
         numberOfBombs = bombNumber;
+
+        depth = setDepth;
 
         fieldSize = screenX*screenY;
         field.resize(screenX * screenY, char_not_dig);
@@ -370,20 +426,23 @@ private:
 
     void initialiseCreate(){
         switch (difficulty){
-         case 1:
+         case 0:
             screenX = EasyScreenX;
             screenY = EasyScreenY;
             numberOfBombs = EasyBombs;
+            depth = EasyDepth;
             break;
-         case 2:
+         case 1:
             screenX = MediumScreenX;
             screenY = MediumScreenY;
             numberOfBombs = MediumBombs;
+            depth = MediumDepth;
             break;
-         case 3:
+         case 2:
             screenX = HardScreenX;
             screenY = HardScreenY;
             numberOfBombs = HardBombs;
+            depth = HardDepth;
             break;
         }
 
@@ -394,24 +453,30 @@ private:
 
     }
 public:
-    controller(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi,COORD setCoord){
+    controller(timer* setTimerPointer, CONSOLE_SCREEN_BUFFER_INFO setOldcsbi,COORD setCoord){
         oldcsbi = setOldcsbi;
         coord = setCoord;
+
+        timerPointer = setTimerPointer;
     }
 
     void create(int diff){
         difficulty = diff;
         switch(difficulty){
          case 0:
-            initialise(EasyScreenX,EasyScreenY,EasyBombs);
+            initialise(EasyScreenX,EasyScreenY,EasyBombs,EasyDepth);
             break;
          case 1:
-            initialise(MediumScreenX,MediumScreenY,MediumBombs);
+            initialise(MediumScreenX,MediumScreenY,MediumBombs,MediumDepth);
             break;
          case 2:
-            initialise(HardScreenX,HardScreenY,HardBombs);
+            initialise(HardScreenX,HardScreenY,HardBombs,HardDepth);
             break;
         }
+    }
+
+    int getDifficulty(){
+        return difficulty;
     }
 
     void loadFile(){
@@ -421,38 +486,75 @@ public:
         fileName += ".dat";
         ifstream fileToRead(fileName) ;
 
+        ofstream temp("temp.txt");
+
         if (fileToRead.fail()) {
             cerr << "unable to open file for reading" << endl;
             exit(2);
         }
 
-        char c;
+        string line;
         int lineNumber = 0;
-        while(fileToRead.get(c)){
+        int currentBomb = 0 , currentDpBomb = 0;
+        while(getline(fileToRead,line)){
             if(lineNumber == 0){
-                int c_int = (int)c - (int)'0';
-                difficulty = c;
+                int c_int = (int)line[0] - (int)'0';
+                difficulty = c_int;
                 initialiseCreate();
+                temp << c_int;
             }
             else if(lineNumber == 1){
-                field.at(1) = c;
+                for(int i=0;i<line.size();i++){
+                    if(i < fieldSize){
+                        field.at(i) = line[i];
+                        temp<<field.at(i);
+                    }
+                }
             }
             else if(lineNumber == 2){
-                //Save Bombs;
+                string NumStr = "";
+                for(int i=0;i<line.size();i++){
+                    if(line[i] >= '0' && line[0] <= '9'){
+                        NumStr += line[i];
+                    }
+                    if(line[i] == '#'){
+                        bombs[currentBomb] = stringToInt(NumStr);
+                        temp<<bombs[currentBomb]<<'#';
+                        currentBomb++;
+                        NumStr = "";
+                    }
+                }
             }
             else if(lineNumber == 3){
-                flagsLeft = (int)c - (int)'0';
+                flagsLeft = stringToInt(line);
+                temp<<flagsLeft;
             }
             else if(lineNumber == 4){
-                //Save dpBombs
-            }
+                string NumDpStr = "";
+                bool negative = false;
+                for(int i=0;i<line.size()-1;i++){
+                    if(line[i] >= '0' && line[0] <= '9'){
+                        NumDpStr += line[i];
+                    }
+                    if(line[i] == '-'){
+                        negative = true;
+                    }
+                    if(line[i] == '#'){
+                        dpBombs[currentDpBomb] = stringToInt(NumDpStr,negative);
+                        temp<<dpBombs[currentDpBomb] <<'#';
 
-            if(c == '\n'){
-                lineNumber++;
+                        currentDpBomb++;
+                        NumDpStr = "";
+                        negative = false;
+                    }
+                }
             }
+            lineNumber++;
+            temp<<'\n';
         }
 
-        //go to Game
+        temp.close();
+        fileToRead.close();
     }
 
     void mainControl(KEY_EVENT_RECORD event){
@@ -538,11 +640,11 @@ public:
                 coord.Y ++;
             }
             if(i == 1){
-                coord.Y += 3;
+                coord.Y += 2;
                 SetConsoleCursorPosition(hConsoleOutput, coord);
             }
         }
-        coord.Y += 3;
+        coord.Y += 2;
         SetConsoleCursorPosition(hConsoleOutput, coord);
 
         cout<<"Press ESC to save and exit";
@@ -552,11 +654,15 @@ public:
 
 class playMenu;
 
+class statisticsMenu;
+
 class mainMenu{
 private:
     int currentPosition;
 
     playMenu* playMenuPointer;
+    statisticsMenu* statisticsMenuPointer;
+
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
 
@@ -569,7 +675,7 @@ private:
     void handleKeyInput(KEY_EVENT_RECORD event);
 
 public:
-    mainMenu(playMenu* setPlayMenu,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord);
+    mainMenu(playMenu* setPlayMenu,statisticsMenu* setStatisticsMenuPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord);
 
     void mainControl(KEY_EVENT_RECORD event);
 
@@ -772,6 +878,7 @@ private:
 
     controller* CtrlPointer;
     mainMenu* mainMenuPointer;
+    timer* timerPointer;
 
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
     COORD coord;
@@ -779,6 +886,10 @@ private:
     void loadFile(int fileNumber){
         currentFile = fileNumber;
         CtrlPointer -> loadFile();
+        timerPointer -> loadTime();
+        timerPointer -> start();
+        currentState = PLAY;
+        CtrlPointer ->print();
         return;
     }
 
@@ -815,13 +926,14 @@ private:
         return;
     }
 public:
-    loadGameMenu(controller* setCtrlPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+    loadGameMenu(controller* setCtrlPointer,timer* setTimerPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
         currentPosition = 0;
 
         oldcsbi = setOldcsbi;
         coord = setCoord;
 
         CtrlPointer = setCtrlPointer;
+        timerPointer = setTimerPointer;
 
         return;
     }
@@ -837,7 +949,7 @@ public:
         mainMenuPointer = setPointer;
     }
 
-    print(){
+    void print(){
         system("cls");
 
         //get Console Size
@@ -995,6 +1107,159 @@ public:
     }
 };
 
+class statisticsMenu{
+private:
+    int currentPosition;
+    const int numberOfOptions = 5;
+    string statsOptions[5] = {"Best Time","Easy: ","Medium: ","Hard: " ,"Back to Main Menu"};
+
+    int bestEasyTime = INT_MAX,bestMediumTime = INT_MAX,bestHardTime = INT_MAX;
+
+    mainMenu* mainMenuPointer;
+
+    CONSOLE_SCREEN_BUFFER_INFO oldcsbi;
+    COORD coord;
+
+    void action(){
+        currentMenuState = MAIN;
+        mainMenuPointer -> print();
+        return;
+    }
+
+    void handleKeyInput(KEY_EVENT_RECORD event){
+        WORD VirtualKey = event.wVirtualKeyCode;
+
+        if(VirtualKey == VK_RETURN){
+            action();
+            return;
+        }
+    }
+
+    void loadScore(){
+        ifstream scores("scores.dat");
+
+        string line;
+
+        int i=0;
+        int stats[3];
+        while(getline(scores,line)){
+            if(i <3){
+                stats[i] = stringToInt(line);
+            }
+            i++;
+        }
+        bestEasyTime = stats[0];
+        bestMediumTime = stats[1];
+        bestHardTime = stats[2];
+
+        scores.close();
+    }
+    void saveScore(){
+        ofstream scores("scores.dat");
+
+        scores << bestEasyTime <<'\n' << bestMediumTime <<'\n' << bestHardTime;
+
+        scores.close();
+    }
+public:
+    statisticsMenu(CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+        currentPosition = 0;
+        setOldcsbi = setOldcsbi;
+        coord = setCoord;
+
+        temp();
+    }
+
+    void temp(){
+        loadScore();
+    }
+
+    void CompareTime(int newTime, int diff){
+        switch(diff){
+         case 0://Easy
+             if(bestEasyTime > newTime){
+                bestEasyTime = newTime;
+             }
+             break;
+         case 1://Medium
+             if(bestMediumTime > newTime){
+                bestMediumTime = newTime;
+             }
+            break;
+         case 2://Hard
+             if(bestHardTime > newTime){
+                bestHardTime = newTime;
+             }
+             break;
+
+        }
+        saveScore();
+    }
+
+    void setMainMenuPointer(mainMenu* setPointer){
+        mainMenuPointer = setPointer;
+    }
+
+    void mainControl(KEY_EVENT_RECORD event){
+        handleKeyInput(event);
+        if(currentMenuState == STATISTICS && currentMenuState != MAIN){
+            print();
+        }
+    }
+
+    void print(){
+
+        system("cls");
+
+        //get Console Size
+        HANDLE hConsoleOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+        CONSOLE_SCREEN_BUFFER_INFO csbi;
+        GetConsoleScreenBufferInfo(hConsoleOutput, &csbi);
+
+        oldcsbi = csbi;
+
+        const int Xoffset = 10;
+
+        coord.X = (short)(csbi.srWindow.Right / 2) - Xoffset;
+        coord.Y = (short)((csbi.srWindow.Bottom) / 3);
+
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        cout<<"Mine sweeper";
+
+        coord.Y+= 4;
+        SetConsoleCursorPosition(hConsoleOutput, coord);
+
+        for(int i=0;i<numberOfOptions;i++){
+            if(i == numberOfOptions-1){
+                setTextColor("red");
+            }
+            cout<<statsOptions[i];
+
+            if(i == 1){
+                if(bestEasyTime != INT_MAX)
+                    cout<<bestEasyTime<<"s";
+                else
+                    cout<<"Not Set Yet";
+            } else if(i == 2){
+                if(bestMediumTime != INT_MAX)
+                    cout<<bestMediumTime<<"s";
+                else
+                    cout<<"Not Set Yet";
+            } else if(i == 3){
+                if(bestHardTime != INT_MAX)
+                    cout<<bestHardTime<<"s";
+                else
+                    cout<<"Not Set Yet";
+            }
+
+            coord.Y+= 2;
+            SetConsoleCursorPosition(hConsoleOutput, coord);
+            setTextColor("normal");
+        }
+    }
+};
+
 void mainMenu::action(){
     if(currentPosition == 0){//Play
         currentMenuState = MENU_PLAY;
@@ -1002,6 +1267,7 @@ void mainMenu::action(){
         return;
     } else if(currentPosition == 1){ // Statistic
         currentMenuState = STATISTICS;
+        statisticsMenuPointer -> print();
         return;
     } else if (currentPosition == 2){ // Exit
         currentState = END;
@@ -1029,10 +1295,11 @@ void mainMenu::handleKeyInput(KEY_EVENT_RECORD event){
     return;
 }
 
-mainMenu::mainMenu(playMenu* setPlayMenu,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
+mainMenu::mainMenu(playMenu* setPlayMenu,statisticsMenu* setStatisticsMenuPointer,CONSOLE_SCREEN_BUFFER_INFO setOldcsbi, COORD setCoord){
     currentPosition = 0;
-    currentMenuState = MAIN;
+
     playMenuPointer = setPlayMenu;
+    statisticsMenuPointer = setStatisticsMenuPointer;
 
     oldcsbi = setOldcsbi;
     coord = setCoord;
@@ -1099,13 +1366,16 @@ void printEnd(bool win,int TimePlayed, CONSOLE_SCREEN_BUFFER_INFO oldcsbi, COORD
     if(win){
         cout<<"You Won :) ";
     } else {
-        cout<<"YOu Lost :( " ;
+        cout<<"You Lost :( " ;
     }
 
     coord.Y += 2;
     SetConsoleCursorPosition(hConsoleOutput,coord);
 
     cout<<"You played for "<<TimePlayed<<" seconds";
+
+    coord.Y += 20;
+    SetConsoleCursorPosition(hConsoleOutput,coord);
 
 }
 
@@ -1143,13 +1413,17 @@ int main(){
     CONSOLE_SCREEN_BUFFER_INFO oldcsbi{};
     COORD coord{};
 
-    controller Ctrl(oldcsbi,coord);
     timer Timer(oldcsbi,coord);
+    controller Ctrl(&Timer,oldcsbi,coord);
 
-    loadGameMenu LoadGameMenu(&Ctrl,oldcsbi,coord);
+    statisticsMenu StatisticsMenu(oldcsbi,coord);
+    loadGameMenu LoadGameMenu(&Ctrl,&Timer,oldcsbi,coord);
     playMenu PlayMenu(&LoadGameMenu,oldcsbi,coord);
-    mainMenu MainMenu(&PlayMenu,oldcsbi,coord);
+    mainMenu MainMenu(&PlayMenu,&StatisticsMenu,oldcsbi,coord);
     newGameMenu NewGameMenu(&MainMenu,&Ctrl,&Timer,oldcsbi,coord);
+
+
+    StatisticsMenu.setMainMenuPointer(&MainMenu);
 
     LoadGameMenu.setMainMenuPointer(&MainMenu);
 
@@ -1160,14 +1434,13 @@ int main(){
     DWORD eventsRead;
 
     MainMenu.print();
-    while (currentState == PLAY || currentState == MENU) {
+    while (currentState == PLAY || currentState == MENU || currentState == WIN || currentState == LOST) {
         if(currentState == PLAY){
             Timer.print();
         }
         if (PeekConsoleInput(hStdin,&inputRecord, 1, &eventsRead) && eventsRead > 0 )  {
             ReadConsoleInput(hStdin, &inputRecord, 1, &eventsRead);
             if (inputRecord.EventType == KEY_EVENT && inputRecord.Event.KeyEvent.bKeyDown) {
-
                 KEY_EVENT_RECORD keyEvent = inputRecord.Event.KeyEvent;
 
                 if(currentState == MENU){
@@ -1175,6 +1448,8 @@ int main(){
                         MainMenu.mainControl(keyEvent);
                     } else if(currentMenuState == MENU_PLAY){
                         PlayMenu.mainControl(keyEvent);
+                    } else if(currentMenuState == STATISTICS){
+                        StatisticsMenu.mainControl(keyEvent);
                     } else if(currentMenuState == LOAD){
                         LoadGameMenu.mainControl(keyEvent);
                     } else if(currentMenuState == NEW_GAME){
@@ -1189,17 +1464,25 @@ int main(){
 
                     Ctrl.mainControl(keyEvent);
                 }
-
+            }
+            if(currentState == WIN || currentState ==LOST){
+                Timer.stop();
+                int TimePlayed = Timer.CalculateTime();
+                if(currentState == LOST){
+                    printEnd(false,TimePlayed,oldcsbi,coord);
+                    //Ctrl -> deleteSave();
+                } else if(currentState == WIN){
+                    StatisticsMenu.CompareTime(TimePlayed,Ctrl.getDifficulty());
+                    printEnd(true,TimePlayed,oldcsbi,coord);
+                }
+                if(inputRecord.Event.KeyEvent.bKeyDown){
+                    currentState = MENU;
+                    currentMenuState = MAIN;
+                }
             }
         }
     }
-    Timer.stop();
-    int TimePlayed = Timer.CalculateTime();
-    if(currentState == LOST){
-         printEnd(false,TimePlayed,oldcsbi,coord);
-    } else if(currentState == WIN){
-         printEnd(true,TimePlayed,oldcsbi,coord);
-    }
+
 
     SetConsoleMode(hStdin,originalMode);
 

@@ -3,7 +3,8 @@
 #include<cmath>
 #include<vector>
 
-const float pi = 3.142;
+const float pi = 3.1415926535;
+const float electronCharge = 1.60217663 * pow(10,-19);
 
 struct str_screen{
 	const int Height = 480;
@@ -72,9 +73,9 @@ private:
 	
 	void initialiseVectors(){
 		field.resize(screen.fieldW, std::vector<cl_vector>(screen.fieldH,cl_vector(0,0,0,0)));
-		for(int w = 0;w<screen.Width;w++){
-			for(int h = 0;h<screen.Height; h++){
-				field[w][h] = cl_vector(w*10,h*10,100,0);
+		for(int w = 0;w<screen.fieldW;w++){
+			for(int h = 0;h<screen.fieldH; h++){
+				field[w][h] = cl_vector(w*10,h*10,0,0);
 			}
 		}
 	}
@@ -84,8 +85,8 @@ public:
 	}
 	void draw(SDL_Renderer* renderer){
 		//Draw a vector
-		for(int w=0;w<screen.Width;w++){
-			for(int h=0;h<screen.Height;h++){
+		for(int w=0;w<screen.fieldW;w++){
+			for(int h=0;h<screen.fieldH;h++){
 				cl_vector& currentVector = field[w][h];
 
 				SDL_SetRenderDrawColor(renderer,255,255,255,255);
@@ -94,6 +95,23 @@ public:
 		}
 	}
 }field;
+
+class cl_charge{
+private:
+	float chargeMagnitude;
+	bool sign;
+public:
+	cl_charge(float setCM,bool setS){
+		chargeMagnitude = setCM;
+		sign = setS;
+	}
+	float getChargeMagbitude const { return chargeMagnitude; }
+	bool getSign const { return sign; }
+
+	void draw(SDL_Renderer* renderer){
+		SDL_0SetRenderDrawColor(renderer,0,0,255,255);
+	}
+}electron(1,false);
 
 int main(){
 	
@@ -114,11 +132,10 @@ int main(){
 		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);//Black
 		SDL_RenderClear(renderer);
 		
+		field.draw(renderer);
 		SDL_RenderPresent(renderer);
 
-		field.draw(renderer);
-
-		SDL_Delay(100);
+		SDL_Delay(1000);
 		
 		
 

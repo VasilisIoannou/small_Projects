@@ -38,19 +38,19 @@ public:
 		calculateEndPoints();
 	}
 
-	float getX0(){
+	float getX0() const{
 		return x0;
 	}
-	float getY0(){
+	float getY0() const{
 		return y0;
 	}
-	float getX1(){
+	float getX1() const{
 		return x1;
 	}
-	float getY1(){
+	float getY1() const{
 		return y1;
 	}
-	float getPhase(){
+	float getPhase() const{
 		return phase;
 	}
 
@@ -62,18 +62,19 @@ public:
 		while(phase < -2*pi){
 			phase += 2*pi;
 		}
+		update();
 	}
 };
 
 class cl_field{
 private:
-	cl_vector* field[64][48];
+	std::vector<std::vector<cl_vector>> field;
 	
 	void initialiseVectors(){
+		field.resize(screen.fieldW, std::vector<cl_vector>(screen.fieldH,cl_vector(0,0,0,0)));
 		for(int w = 0;w<screen.Width;w++){
 			for(int h = 0;h<screen.Height; h++){
-				cl_vector initialVector(w*10,h*10,100,0);
-				field[w][h] = &initialVector;
+				field[w][h] = cl_vector(w*10,h*10,100,0);
 			}
 		}
 	}
@@ -85,10 +86,10 @@ public:
 		//Draw a vector
 		for(int w=0;w<screen.Width;w++){
 			for(int h=0;h<screen.Height;h++){
-				cl_vector* currentVector = field[w][h];
+				cl_vector& currentVector = field[w][h];
 
 				SDL_SetRenderDrawColor(renderer,255,255,255,255);
-				SDL_RenderLine(renderer,currentVector->getX0(),currentVector->getY0(),currentVector->getX1(),currentVector->getY1());
+				SDL_RenderLine(renderer,currentVector.getX0(),currentVector.getY0(),currentVector.getX1(),currentVector.getY1());
 			}
 		}
 	}

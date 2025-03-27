@@ -25,6 +25,11 @@ void disable_raw_mode() {
     tcsetattr(STDIN_FILENO, TCSAFLUSH, &normal);
 }
 
+enum STATE{
+	RUNNING,
+	END
+} current_state = RUNNING;
+
 typedef struct{
         int rows, cols;
         int center_x,center_y;
@@ -78,13 +83,32 @@ void window_print(window* self){
        		fflush(stdout); // Ensure output is displayed immediately
 	}
 }
+void window_executeInput(window* self,char input){
+
+	if(self->current_option == 1) {
+		return;
+	}
+	if(self->current_option == 2) {
+		return;
+	}
+	if(self->current_option == 3) {
+		return;
+	}
+	if(self->current_option == 4) {
+		current_state = END;
+		return;
+	}
+}
 
 void window_handleInput(window* self,char input){
-	if(input == 'w'){
-			if(self->current_option < self->number_of_options) self->current_option++;
+	if(input == 'j' || input == 's'){
+		if(self->current_option < self->number_of_options) self->current_option++;
 	}
-	if(input == 's'){
-			if(self->current_option > 1) self->current_option--;
+	if(input == 'k' || input == 'w'){
+		if(self->current_option > 1) self->current_option--;
+	}
+	if(input == 'e' || input == 'l'){
+		window_executeInput(self,input);
 	}
 	return;
 }
@@ -96,12 +120,20 @@ int main() {
         printf("\033[?25l");  // Hide cursor
         printf("\033[2K");
        
-	    enable_raw_mode(); // Enter raw mode
+       	enable_raw_mode(); // Enter raw mode
 		
-		char c;
-		while(read(STDIN_FILENO, &c, 1) == 1 && c != 'q'){
-			window_print(&w);
-		}
+
+	window_print(&w);
+	char c = 'a';
+	while( current_state != END && read(STDIN_FILENO, &c, 1) == 1){
+		window_handleInput(&w,c);
+		window_print(&w);
+	}
+	
+	disable_raw_mode();
+
+        printf("\033[2J");
+	printf("\033[%d;%dH%s",1,1,"goodbye...\n");	
 
         return 0;
 }

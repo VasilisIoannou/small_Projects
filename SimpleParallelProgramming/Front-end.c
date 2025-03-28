@@ -31,33 +31,6 @@ enum STATE{
 } current_state = RUNNING;
 
 typedef struct{
-	pid_t* worker_list;
-	int current_count;
-	FILE* inputFile;
-}controller;
-
-void controller_init(controller* self,FILE* file){
-	self->current_count = 0;
-	self->inpitFile = file;
-}
-
-void controller_addWorker(controller* self){
-	return;
-}
-
-typedef struct{
-	int count;
-	pid_t pid;
-	FILE* inputFile;
-	long start,end;
-}worker;
-
-void worker_init(worker* self,pid_t setPid,FILE* file){
-	self-> pid = setPid;
-	self-> inputFile = file;
-}
-
-typedef struct{
         int rows, cols;
         int center_x,center_y;
 	int start_y;
@@ -141,24 +114,15 @@ void window_handleInput(window* self,char input){
 }
 int main() {
 	
-	//Manage Input File
-	char fileName[32] = "text.txt";
-	FILE* inputFile = fopen(fileName,"r");
-
 	//Initialide Window
-        window w;
-        window_init(&w);
+	window w;
+	window_init(&w);
 
-	//Initialise Controller
-	controller c;
-	controller_init(&c,inputFile);
-
-        printf("\033[?25l");  // Hide cursor
-        printf("\033[2K");
+	printf("\033[?25l");  // Hide cursor
+	printf("\033[2K");
        
-       	enable_raw_mode(); // Enter raw mode
+	enable_raw_mode(); // Enter raw mode
 		
-
 	window_print(&w);
 	char c = 'a';
 	while( current_state != END && read(STDIN_FILENO, &c, 1) == 1){
@@ -170,7 +134,7 @@ int main() {
 	
 	fclose(inputFile);
 
-        printf("\033[2J");
+	printf("\033[2J");
 	printf("\033[%d;%dH%s",1,1,"goodbye...\n");	
 
         return 0;

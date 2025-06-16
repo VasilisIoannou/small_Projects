@@ -1,0 +1,10 @@
+.mainDiv{
+    display: flex;
+    flex-direction: column; /* Stack items vertically */
+}
+.linkButton {
+    margin-top: 40px; /* Adds spacing between the message and link */
+    text-decoration: none;
+    color: blue;
+    font-weight: bold;
+}

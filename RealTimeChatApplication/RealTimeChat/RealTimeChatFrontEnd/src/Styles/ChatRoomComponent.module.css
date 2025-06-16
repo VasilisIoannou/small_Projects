@@ -1,0 +1,89 @@
+/* .user { 
+  font-family: 'Times New Roman', Times, serif;
+  display: inline-block;
+  background-color: black;
+  color:white;
+  border:2px solid black;
+  padding:5px;
+  width:auto;
+  border-radius:5px;
+  text-align: center;
+  font-weight: bold;
+  margin-right: 5px;
+} */
+
+
+.messageInput{
+  margin-right:5px;
+  height:30px;
+  width:220px;
+  border-radius:5px;
+  border: 2px solid black;  
+}
+
+.messageInput::placeholder{
+  font-size:15px;
+  padding-left:5px;
+  font-style:italic;
+}
+
+/* .MessageButton{
+  height:35px;
+  width:47px;
+  text-align: center;
+  border-radius:5px;
+  background-color:grey;
+  color:white;
+  cursor:pointer;
+} */
+
+/* .MessageButton:hover{
+  background-color:black;
+  transition-duration: 0.1s;
+} */
+
+.theInput{
+  text-align: center;
+  margin:10px;
+}
+
+
+
+.messageBox {
+  display: flex; /* Enables flex layout */
+  flex-direction: column; /* Stack messages vertically */
+  position: relative; /* Relative positioning for boundaries */
+  background-color: #f0f0f0; /* Container background */
+  padding: 10px;
+  border: 2px solid black;
+  width: 60%; /* Set the width of the container */
+  margin: 0 auto; /* Center the container */
+}
+
+.messageLine {
+  display: flex; /* Use flexbox to align messages */
+  justify-content: flex-end; /* Align messages to the right */
+}
+
+.message1, .message2 {
+  max-width: 70%; /* Limit the maximum width of messages */
+  padding: 7px;
+  border-radius: 10px;
+  word-wrap: break-word; /* Break words if they exceed the max-width */
+  margin-bottom:5px;
+}
+
+.message1 {
+  background-color: #2763FF;;
+  color: white;
+  text-align: left;
+  margin-left: auto; /* Push the message to the right */
+}
+
+.message2 {
+  background-color: #A702FF;
+  color: white;
+  text-align: left;
+  margin-right: auto; /* Push the message to the left */
+}
+

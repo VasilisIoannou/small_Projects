@@ -1,3 +1,0 @@
-work in progress...
-
-This is a CHIP-8 Emulator

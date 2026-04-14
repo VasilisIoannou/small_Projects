@@ -1,0 +1,2 @@
+Bullets dont get destroyed I think
+Make the window chnage the boarders

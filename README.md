@@ -35,6 +35,14 @@ An action game built entirely within the terminal buffer. Focuses on manual memo
 - **Platform:** Linux
 - **Status:** **Under Construction**
 
+### 4. Music in Temrinal
+
+A utility to listen to music from youtube in the terminal based on fzf, mpv and yt-dlp. This is a simple program that I use instead of listening music in browser to save battery life!
+
+-**Language** Bash
+-**Platform** Linux
+-**Status** Usable but needs set up the first time
+
 ### License
 
 This repository is open-source. Feel free to explore the code for educational purposes!

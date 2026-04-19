@@ -3,7 +3,7 @@
 # This is a simple program to easly select songs from a playlist to play based on:
 # fzf, mpv and yt-dlp
 #
-BASE_DIR="./playlists"
+BASE_DIR="$HOME/Documents/MainFolder/github/small_Projects/music_player/playlists"
 
 if [[ ! -d "$BASE_DIR" ]]; then
     echo "Error: Directory $BASE_DIR not found."

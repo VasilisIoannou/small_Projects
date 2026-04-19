@@ -34,6 +34,8 @@ sudo nano /usr/local/bin/radio
 
 Paste the script code (ensure your BASE_DIR points to your playlists folder).
 
+Important: set your OWN BASE_DIR!
+
 Make it executable:
 Bash
 

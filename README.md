@@ -9,6 +9,7 @@ Welcome to my collection of small, experimental, and hobby projects! This reposi
 |**Minesweeper Clone**|C++|Windows|Completed|
 |**Terminal Image Printer**|C|Linux|Active/Expanding|
 |**Top-Down Shooter**|C|Linux|In Progress|
+|**Music in Terminal**|Bash|Linux|Active/Expanding|
 ## Detailed Project Breakdown
 
 ### 1.  Minesweeper Clone

@@ -9,6 +9,7 @@ Welcome to my collection of small, experimental, and hobby projects! This reposi
 |**Minesweeper Clone**|C++|Windows|Completed|
 |**Terminal Image Printer**|C|Linux|Active/Expanding|
 |**Top-Down Shooter**|C|Linux|In Progress|
+|**Music in Terminal**|Bash|Linux|Active/Expanding|
 ## Detailed Project Breakdown
 
 ### 1.  Minesweeper Clone
@@ -34,6 +35,14 @@ An action game built entirely within the terminal buffer. Focuses on manual memo
 - **Language:** C
 - **Platform:** Linux
 - **Status:** **Under Construction**
+
+### 4. Music in Temrinal
+
+A utility to listen to music from youtube in the terminal based on fzf, mpv and yt-dlp. This is a simple program that I use instead of listening music in browser to save battery life!
+
+-**Language** Bash
+-**Platform** Linux
+-**Status** Usable but needs set up the first time
 
 ### License
 

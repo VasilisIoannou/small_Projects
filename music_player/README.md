@@ -84,4 +84,7 @@ radio
 
     Press ESC to cancel.
 
-    While music is playing, press Q in the terminal to stop the music and exit.
+    While music is playing:
+        press Q in the terminal to stop the music and exit.
+        press N in the terminal to skip song.
+

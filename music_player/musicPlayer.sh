@@ -66,8 +66,11 @@ while [[ $current_index -lt ${#playlist[@]} ]]; do
     echo "Now Playing [$((current_index + 1))/${#playlist[@]}]: $song_name"
     echo "------------------------------------------"
 
-    mpv --no-video  --input-conf=<(printf "n quit 0\nq quit 123\n") "$url"
-    
+    mpv --no-video\
+        --msg-level=ffmpeg=error,demuxer=error\
+        --input-conf=<(printf "n quit 0\nq quit 123\n")\
+        "$url"
+     
     # Check if mpv was interrupted (e.g., you closed the terminal or hit Ctrl+C twice)
     if [[ $? -ne 0 ]]; then
         echo "Playback stopped."

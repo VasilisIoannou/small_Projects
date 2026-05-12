@@ -8,18 +8,22 @@
 #include "gun.h"
 #include "controller.h"
 #include "log.h"
+#include "enemy.h"
+#include "enemyList.h"
 
 #define FPS 30
 #define FRAME_DELAY (1000000 / FPS)
 
 
-void drawNextFrame(Player* p, Gun* g){
+void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList){
     //update screen
     clearScreen();
     drawBorders();
     Player_draw(p);
     Gun_draw(g);
     Gun_drawBullets(g);
+
+    enemyList_draw(enemyList);
 
     return;
 }
@@ -31,9 +35,18 @@ int main(){
     Controller* ctrl = init_Controller();
     Player* p = init_Player();
     Gun* g = init_Gun(p);
+    
+    EnemyNode* enemyList = NULL;
+
 
     ctrl_setPlayer(ctrl,p);
     ctrl_setGun(ctrl, g);
+
+    //temporary create 1 enemy here
+    Enemy* e = init_Enemy(10,10,p);
+    Enemy* e2 = init_Enemy(20,20,p);
+    enemyList_addEnemy(&enemyList,e);
+    enemyList_addEnemy(&enemyList,e2);
 
     //setEcho(0);
     enableRawMode();
@@ -52,7 +65,10 @@ int main(){
         Gun_move(g);
         Gun_updateBullets(g);
 
-        drawNextFrame(p,g);
+        //Update Enemies
+        enemyList_cleanup(&enemyList);
+
+        drawNextFrame(p,g,enemyList);
         usleep(FRAME_DELAY);
     }
 
@@ -61,6 +77,8 @@ int main(){
 
     Player_destroy(p);
     Gun_destroy(g);
+    enemyList_destroy(enemyList);
+    enemyList = NULL;
 
     //Exit
     //setEcho(1);

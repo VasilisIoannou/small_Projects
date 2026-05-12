@@ -42,3 +42,6 @@ void ctrl_readInput(Controller* ctrl,char key){
         Gun_readInput(ctrl->g,key);
     }
 }
+
+
+

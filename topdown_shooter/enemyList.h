@@ -12,5 +12,6 @@ void enemyList_addEnemy(EnemyNode** head, Enemy* new_e);
 void enemyList_cleanup(EnemyNode** head_ref) ;
 void enemyList_destroy(EnemyNode* head) ;
 void enemyList_draw(EnemyNode* head);
+void enemyList_update(EnemyNode* head);
 
 #endif

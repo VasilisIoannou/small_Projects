@@ -43,8 +43,8 @@ int main(){
     ctrl_setGun(ctrl, g);
 
     //temporary create 1 enemy here
-    Enemy* e = init_Enemy(10,10,p);
-    Enemy* e2 = init_Enemy(20,20,p);
+    Enemy* e = init_Enemy(10,10,p,g);
+    Enemy* e2 = init_Enemy(20,20,p,g);
     enemyList_addEnemy(&enemyList,e);
     enemyList_addEnemy(&enemyList,e2);
 
@@ -66,6 +66,7 @@ int main(){
         Gun_updateBullets(g);
 
         //Update Enemies
+        enemyList_update(enemyList);
         enemyList_cleanup(&enemyList);
 
         drawNextFrame(p,g,enemyList);

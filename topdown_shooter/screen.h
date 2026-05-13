@@ -2,7 +2,6 @@
 #define SCREEN_H
 
 typedef enum COLOURS_ENUM {
-
     RED = 31,
     GREEN = 32,
     YELLOW = 33,

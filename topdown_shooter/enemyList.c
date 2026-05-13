@@ -41,7 +41,6 @@ void enemyList_destroy(EnemyNode* head) {
     while (head != NULL) {
         temp = head;
         head = head->next;
-        // Option: free(temp->enemyData); // Only if you malloc'd the Enemy too!
         free(temp);
     }
 }
@@ -50,6 +49,14 @@ void enemyList_draw(EnemyNode* head) {
     EnemyNode* curr = head; 
     while (curr != NULL) {
         Enemy_draw(curr->e);
+        curr = curr->next;
+    }
+}
+
+void enemyList_update(EnemyNode* head){
+    EnemyNode* curr = head;
+    while(curr != NULL){
+        Enemy_update(curr->e); 
         curr = curr->next;
     }
 }

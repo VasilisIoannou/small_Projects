@@ -39,6 +39,7 @@ void bullet_collision(Enemy* e) {
 
         if (b->x == e->x && b->y == e->y) {
             e->dead = 1; 
+            b->remove = 1;
             return; 
         }
         current = current->next;

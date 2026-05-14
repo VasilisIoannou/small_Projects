@@ -71,7 +71,7 @@ void Bullet_move(Bullet* b){
     }
 
     if(b->dir == DIR_LEFT){
-        b-> x --;    
+        b-> x--;    
         return;
     }
 
@@ -80,7 +80,7 @@ void Bullet_move(Bullet* b){
         return;
     }
 
-    if(b->x < 0 || b->x > width-1 || b->y < 0 || b->y > height-1){
+    if(b->x < 10 || b->x > width-2 || b->y < 10 || b->y > height-2){
         b->remove = 1;
     }
 }

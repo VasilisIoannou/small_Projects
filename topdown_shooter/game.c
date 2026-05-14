@@ -10,12 +10,13 @@
 #include "log.h"
 #include "enemy.h"
 #include "enemyList.h"
+#include "boss.h"
 
 #define FPS 30
 #define FRAME_DELAY (1000000 / FPS)
 
 
-void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList){
+void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList,Boss* boss){
     //update screen
     clearScreen();
     drawBorders();
@@ -24,6 +25,10 @@ void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList){
     Gun_drawBullets(g);
 
     enemyList_draw(enemyList);
+
+    if(boss != NULL){
+        Boss_draw(boss);
+    }
 
     return;
 }
@@ -48,6 +53,10 @@ int main(){
     enemyList_addEnemy(&enemyList,e);
     enemyList_addEnemy(&enemyList,e2);
 
+    //temporary crete boss here
+    //After I add spawn of enemies in rounds and points I will contnue with the boss
+    Boss* boss = init_Boss(g);
+
     //setEcho(0);
     enableRawMode();
     clearScreen();
@@ -69,7 +78,12 @@ int main(){
         enemyList_update(enemyList);
         enemyList_cleanup(&enemyList);
 
-        drawNextFrame(p,g,enemyList);
+        //Update Boss
+        if(boss != NULL){
+            Boss_update(boss);
+        }
+
+        drawNextFrame(p,g,enemyList,boss);
         usleep(FRAME_DELAY);
     }
 

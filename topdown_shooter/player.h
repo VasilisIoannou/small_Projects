@@ -22,6 +22,8 @@ typedef struct Player_struct{
     int x,y;
     int v;
 
+    int dead;
+
 }Player;
 
 Player* init_Player();

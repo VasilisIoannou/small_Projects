@@ -20,7 +20,12 @@ void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList,Boss* boss){
     //update screen
     clearScreen();
     drawBorders();
-    Player_draw(p);
+
+    //temporary
+    if(p->dead != 1){
+        Player_draw(p);
+    }
+
     Gun_draw(g);
     Gun_drawBullets(g);
 
@@ -33,16 +38,11 @@ void drawNextFrame(Player* p, Gun* g,EnemyNode* enemyList,Boss* boss){
     return;
 }
 
-int main(){
-
-    create_log();
-
-    Controller* ctrl = init_Controller();
+void room(Controller* ctrl){
     Player* p = init_Player();
     Gun* g = init_Gun(p);
     
     EnemyNode* enemyList = NULL;
-
 
     ctrl_setPlayer(ctrl,p);
     ctrl_setGun(ctrl, g);
@@ -56,18 +56,16 @@ int main(){
     //temporary crete boss here
     //After I add spawn of enemies in rounds and points I will contnue with the boss
     Boss* boss = init_Boss(g);
-
-    //setEcho(0);
-    enableRawMode();
-    clearScreen();
-    hideCursor();
-
-    while(ctrl_getState(ctrl) != STATE_END){
-       
+    
+    while(ctrl_getState(ctrl) != STATE_END_GAME && ctrl_getState(ctrl) != STATE_END_SCENE){
         //input
         if(kbhit()){
             char key = getchar();
             ctrl_readInput(ctrl,key);
+        }
+
+        if(p->dead == 1){
+            continue;
         }
 
         //Update One Cycle after Input
@@ -86,14 +84,38 @@ int main(){
         drawNextFrame(p,g,enemyList,boss);
         usleep(FRAME_DELAY);
     }
-
-    //Delete structs
-    close_log();
-
+    //clean room
     Player_destroy(p);
     Gun_destroy(g);
     enemyList_destroy(enemyList);
     enemyList = NULL;
+}
+
+int main(){
+    create_log();
+
+    //setEcho(0);
+    enableRawMode();
+    clearScreen();
+    hideCursor();
+
+    Controller* ctrl = init_Controller();
+
+    ctrl->current_state = STATE_IDLE;
+    while(ctrl_getState(ctrl) != STATE_END_GAME){
+        //input
+        if(kbhit()){
+            char key = getchar();
+            ctrl_readInput(ctrl,key);
+        }
+        ctrl->current_state = STATE_PLAY;
+        room(ctrl);
+    }
+
+    //Delete structs
+    close_log();
+
+    ctrl_Destroy(ctrl);
 
     //Exit
     //setEcho(1);

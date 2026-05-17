@@ -1,0 +1,5 @@
+# This is a simple music player based on fzf,mpv and yt-dlp
+
+#!/bin/bash
+
+#Formal "Name | URL"

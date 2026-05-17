@@ -6,8 +6,10 @@
 #include "gun.h"
 
 typedef enum States_Enum{
+    STATE_IDLE,
     STATE_PLAY,
-    STATE_END
+    STATE_END_SCENE,
+    STATE_END_GAME
 }STATE;
 
 typedef struct Controller_struct{

@@ -12,6 +12,7 @@ Player* init_Player(){
     new_p-> x = START_X;
     new_p->y = START_Y;
     new_p->v = 0;
+    new_p->dead = 0;
     new_p->self_char = '@';
     new_p->self_colour = RED;
 
@@ -40,7 +41,7 @@ void Player_move(Player* p,DIRECTION dir){
     if(dir == DIR_UP){
         p->y--;
         return;
-    }
+    }   
     if(dir == DIR_DOWN){
         p->y++;
         return;
@@ -65,4 +66,3 @@ void Player_readInput(Player* p,char key){
         return;
     }
 }
-

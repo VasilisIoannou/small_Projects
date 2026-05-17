@@ -34,7 +34,9 @@ void ctrl_setGun(Controller* ctrl,Gun* set_g){
 
 void ctrl_readInput(Controller* ctrl,char key){
     if(key == 'q'){
-        ctrl_changeState(ctrl,STATE_END);
+        ctrl_changeState(ctrl,STATE_END_GAME);
+    } else if(key == 'r'){
+        ctrl_changeState(ctrl,STATE_END_SCENE);
     }
 
     if(ctrl_getState(ctrl) == STATE_PLAY){

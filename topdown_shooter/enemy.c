@@ -75,9 +75,16 @@ void Enemy_move(Enemy* e){
     return;
 }
 
+void Enemy_player_collision(Enemy* e){
+    if(e->x == e->p->x && e->y ==e->p->y){
+        e->p->dead = 1;
+    }
+}
+
 void Enemy_update(Enemy* e){
     bullet_collision(e);
     Enemy_move(e);
+    Enemy_player_collision(e);
 }
 
 void Enemy_draw(Enemy* e){

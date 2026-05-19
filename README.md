@@ -10,6 +10,7 @@ Welcome to my collection of small, experimental, and hobby projects! This reposi
 |**Terminal Image Printer**|C|Linux|Active/Expanding|
 |**Top-Down Shooter**|C|Linux|In Progress|
 |**Music in Terminal**|Bash|Linux|Active/Expanding|
+|**Toy CPU Emulator - Assembly**|C / Python|Active/Expanding|
 ## Detailed Project Breakdown
 
 ### 1.  Minesweeper Clone
@@ -43,6 +44,16 @@ A utility to listen to music from youtube in the terminal based on fzf, mpv and 
 - **Language** Bash
 - **Platform** Linux
 - **Status** Usable but needs set up the first time
+
+- 
+### 5. Toy CPU and a Toy Assembler for the CPU
+
+This is a simple project that that simulates a simple CPU with 256 bytes of memory and an Accumulator. I also Have a toy Assembler written in Python to play around with it.
+In addition there is a utility program written in Python you can use to manually edit the memory of the Program (in Hexadecimals)
+
+- **Language** C / Python
+- **Platform** Linux
+- **Status** Usable
 
 ### License
 

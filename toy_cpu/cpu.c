@@ -169,7 +169,33 @@ void test_program(proc* p){
     // p->mem[0x23] should contain 0x07!
 }
 
-int main(int argc, char argv[]){
+void load_program(proc* p, char* filename){
+    FILE* load = fopen(filename, "r");
+
+    if(load == NULL){
+        printf("There was an error with reading the file\n");
+        return;
+    }
+
+    char line[10]; 
+    int address = 0; 
+
+    while (fgets(line, sizeof(line), load) != NULL){
+        uint8_t value = (uint8_t)strtol(line, NULL, 16);
+
+        if (address < MEM_SIZE) {
+            p->mem[address] = value;
+            address++;
+        } else {
+            printf("Warning: Program file is larger than CPU memory!\n");
+            break;
+        }
+    }
+
+    fclose(load); 
+}
+
+int main(int argc, char *argv[]){
     //I will later load the memory from the file (as a program)
 
     proc* p;
@@ -181,7 +207,7 @@ int main(int argc, char argv[]){
     }
 
     //load a test program
-    test_program(p);
+    load_program(p,argv[1]);
 
     printf("CPU simulation starting ... \n");
     while(current_state == RUNNING){

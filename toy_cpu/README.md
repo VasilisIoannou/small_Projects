@@ -22,7 +22,6 @@ This repository contains three main files, each serving a distinct role in the e
 ## Architecture & Instruction Set (ISA)
 The virtual CPU is an 8-bit accumulator machine with 256 bytes of addressable memory. 
 ### Instructions | Mnemonic | Opcode | Arguments | 
-Description | | :--- | :---: | :--- | :--- | | 
 - **LDA** | `0x01` | `[addr]` | Load the value at memory address `[addr]` into ACC. | |
 - **LDI** | `0x02` | `[val]` | Load the immediate value `[val]` directly into ACC. | | 
 - **ADDA** | `0x03` | `[addr]` | Add the value at memory address `[addr]` to ACC. | | 
@@ -31,7 +30,7 @@ Description | | :--- | :---: | :--- | :--- | |
 - **END** | `0x06` | *none* | Halt CPU execution. | | 
 - **GOTO** | `0x07` | `[addr]` | Unconditionally jump PC to `[addr]`. | | 
 - **BREQ** | `0x08` | `[val] [addr]` | Branch if equal: if ACC == `[val]`, jump PC to `[addr]` Otherwise, continue. | 
--
+
 ##  Getting Started 
 
 Prerequisites 

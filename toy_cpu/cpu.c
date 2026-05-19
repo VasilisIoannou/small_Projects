@@ -56,22 +56,48 @@ void proc_fetch(proc* p){
 }
 
 void ins_load(proc* p){
-    p->acc = p->mem[p->pc];
+    uint8_t addr = p->mem[p->pc];  
+    p->acc = p->mem[addr];
     printf("LOAD: acc = %x\n",p->acc);
+    p->pc++;
 }
 
 void ins_add(proc* p){
-    p->acc += p->mem[p->pc];
+    uint8_t addr = p->mem[p->pc];
+    p->acc += p->mem[addr];
     printf("ADD: acc = %x\n",p->acc);
+    p->pc++;
 }
 
 void ins_store(proc* p){
     uint8_t addr = p->mem[p->pc];
     p->mem[addr] = p->acc;
     printf("STORE: stored %x at %x\n",p->acc,p->pc);
+    p->pc++;
 }
+
+void ins_goto(proc* p){
+    uint8_t target_addr = p->mem[p->pc];
+    p->pc = target_addr;
+    printf("GOTO: %x\n",p->pc);
+}
+
+void ins_breq(proc* p){
+    uint8_t cmp_val = p->mem[p->pc];
+    uint8_t target_addr = p->mem[p->pc+1];
+    
+    printf("BREQ: if %x == %x goto %x \n", p->acc, cmp_val, target_addr);
+    
+    if(cmp_val == p->acc){
+        p->pc = target_addr;         
+    } else {
+        p->pc += 2;                 
+    }
+}
+
 void ins_halt(){
     current_state = END;
+    printf("HALT\n");
 }
 
 void proc_decAndExec(proc* p){
@@ -88,38 +114,59 @@ void proc_decAndExec(proc* p){
         case 0x04:
             ins_halt();
             break;
+        case 0x05:
+            ins_goto(p);
+            break;
+        case 0x06:
+            ins_breq(p);
+            break;
         default: break;
     }
-    p->pc++;
 }
 
 void test_program(proc* p){
-    /*  The program is the following
-    *   LOAD 0x10 = 5
-    *   ADD 0x11 = 7
-    *   STORE 0x12
-    *   END
+    /*  The program is a simple loop:
+    *   [0x00] LOAD 0x20   // Load starting value (5) from addr 0x20
+    *   [0x02] ADD 0x21    // Add increment value (1) from addr 0x21
+    *   [0x04] STORE 0x23  // Store the current accumulator in addr 0x23
+    *   [0x06] BREQ 0x07, 0x0B // If acc == 7, branch to HALT at 0x0B
+    *   [0x09] GOTO 0x02   // Otherwise, loop back to the ADD instruction
+    *   [0x0B] HALT        // End of program
     */
 
-    //LOAD 0x10
-    p->mem[0x00] = 0x01;
-    p->mem[0x01] = 0x10;
+    // 0x00: LOAD 0x20
+    p->mem[0x00] = 0x01; // Opcode: LOAD
+    p->mem[0x01] = 0x20; // Operand: Address 0x20
 
-    //ADD 0x11
-    p->mem[0x02] = 0x02;
-    p->mem[0x03] = 0x11;
+    // 0x02: ADD 0x21
+    p->mem[0x02] = 0x02; // Opcode: ADD
+    p->mem[0x03] = 0x21; // Operand: Address 0x21
 
-    //STORE 0x12
-    p->mem[0x04] = 0x03;
-    p->mem[0x05] = 0x12;
+    // 0x04: STORE 0x23
+    p->mem[0x04] = 0x03; // Opcode: STORE
+    p->mem[0x05] = 0x23; // Operand: Address 0x23
 
-    //END
-    p->mem[0x06] = 0x04;
+    // 0x06: BREQ 0x07, 0x0B
+    p->mem[0x06] = 0x06; // Opcode: BREQ
+    p->mem[0x07] = 0x07; // Operand 1: Immediate value to compare (7)
+    p->mem[0x08] = 0x0B; // Operand 2: Target address to jump to (0x0B)
 
-    //Data
-    p->mem[0x10] = 0x05;
-    p->mem[0x11] = 0x07;
+    // 0x09: GOTO 0x02
+    p->mem[0x09] = 0x05; // Opcode: GOTO
+    p->mem[0x0A] = 0x02; // Operand: Address 0x02 (Loops back to ADD)
 
+    // 0x0B: HALT
+    p->mem[0x0B] = 0x04; // Opcode: HALT
+
+    // --- DATA SEGMENT ---
+    
+    // Starting data
+    p->mem[0x20] = 0x05; // Starting value for ACC
+    p->mem[0x21] = 0x01; // Number to add each loop
+    
+    // 0x23 is left at 0x00 by default. 
+    // By the end of the simulation, if you look at your memory dump, 
+    // p->mem[0x23] should contain 0x07!
 }
 
 int main(int argc, char argv[]){

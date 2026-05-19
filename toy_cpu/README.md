@@ -48,7 +48,7 @@ Prerequisites
 3. **Run the Emulator.** Compile the C program and pass the generated hex file as an argument.
 
 		Bash:  $  gcc cpu.c -o cpu
-			 $ ./cpu program.txt
+			   $ ./cpu program.txt
 			 
 4. **Edit Memory Manually (Optional)** Launch the GUI editor to inspect or manually create a memory state.
 

@@ -10,7 +10,7 @@ Welcome to my collection of small, experimental, and hobby projects! This reposi
 |**Terminal Image Printer**|C|Linux|Active/Expanding|
 |**Top-Down Shooter**|C|Linux|In Progress|
 |**Music in Terminal**|Bash|Linux|Active/Expanding|
-|**Toy CPU Emulator - Assembly**|C / Python|Active/Expanding|
+|**Toy CPU Emulator - Assembly**|C / Python|Linux|Active/Expanding|
 ## Detailed Project Breakdown
 
 ### 1.  Minesweeper Clone

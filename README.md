@@ -44,8 +44,7 @@ A utility to listen to music from youtube in the terminal based on fzf, mpv and 
 - **Language** Bash
 - **Platform** Linux
 - **Status** Usable but needs set up the first time
-
-- 
+ 
 ### 5. Toy CPU and a Toy Assembler for the CPU
 
 This is a simple project that that simulates a simple CPU with 256 bytes of memory and an Accumulator. I also Have a toy Assembler written in Python to play around with it.
